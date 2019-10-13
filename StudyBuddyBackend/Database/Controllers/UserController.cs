@@ -2,32 +2,32 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using StudyBuddyBackend.Managers;
-using StudyBuddyBackend.Models;
+using StudyBuddyBackend.Database.Entities;
+using StudyBuddyBackend.Database.Managers;
 
-namespace StudyBuddyBackend.Controllers
+namespace StudyBuddyBackend.Database.Controllers
 {
     [Route("api/user")]
     [ApiController]
-    public class UserController : ControllerBase
+    public sealed class UserController : ControllerBase
     {
-        private ILogger<UserController> logger;
+        private readonly UserRepository userRepository;
 
-        public UserController(ILogger<UserController> logger)
+        public UserController(UserRepository userManager)
         {
-            this.logger = logger;
+            this.userRepository = userManager;
         }
 
         // GET: api/user/username
         [HttpGet("{username}")]
-        public object Get(string username)
+        public IActionResult Get(string username)
         {
-            var user = from u in UserManager.GetUsers()
-                       where u.Username == username
-                       select u;
-            return user;
+            var optional = userRepository.Get(username);
+            if (optional.HasValue) return Ok(optional.Value);
+            else return NotFound();
         }
 
         // POST: api/user
