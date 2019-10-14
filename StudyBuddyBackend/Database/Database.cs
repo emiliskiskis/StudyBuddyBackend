@@ -1,46 +1,40 @@
-﻿using Microsoft.Extensions.Logging;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 
 namespace StudyBuddyBackend.Database
 {
     public sealed class Database
     {
-        private readonly string connectionString;
-        private readonly ILogger<Database> logger;
+        private readonly string _connectionString;
+        private readonly ILogger<Database> _logger;
 
-        public Database(ILogger<Database> logger) : this()
+        public Database(ILogger<Database> logger)
         {
-            this.logger = logger;
-        }
-
-        private Database()
-        {
+            _logger = logger;
             try
             {
                 string mysqlConfigFile = File.ReadAllText("Database/mysqlconfig.json");
                 dynamic mysqlConfig = JsonConvert.DeserializeObject(mysqlConfigFile);
-                connectionString = string.Format("data source={0};database={1};user id={2};password={3}",
-                    mysqlConfig["data_source"],
-                    mysqlConfig["database"],
-                    mysqlConfig["username"],
-                    mysqlConfig["password"]
-                );
+                _connectionString =
+                    $"data source={mysqlConfig["data_source"]};" +
+                    $"database={mysqlConfig["database"]};" +
+                    $"user id={mysqlConfig["username"]};" +
+                    $"password={mysqlConfig["password"]}";
             }
             catch (FileNotFoundException e)
             {
-                logger.LogError(e.ToString());
+                _logger.LogError(e.ToString());
             }
         }
 
         private MySqlConnection OpenConnection()
         {
-            var connection = new MySqlConnection(connectionString);
+            var connection = new MySqlConnection(_connectionString);
             connection.Open();
             return connection;
         }
@@ -57,10 +51,11 @@ namespace StudyBuddyBackend.Database
             {
                 using var conn = OpenConnection();
                 using var cmd = new MySqlCommand(query, conn);
-                foreach (var param in parameters)
+                foreach (var (key, value) in parameters)
                 {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value);
+                    cmd.Parameters.AddWithValue(key, value);
                 }
+
                 using var reader = cmd.ExecuteReader();
                 var columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
                 if (reader.HasRows)
@@ -73,15 +68,34 @@ namespace StudyBuddyBackend.Database
                             object cell = reader[column];
                             rowEntry.Add(column, cell);
                         }
+
                         rowEntries.Add(rowEntry);
                     }
                 }
             }
             catch (Exception e)
             {
-                logger.LogError(e.ToString());
+                _logger.LogError(e.ToString());
             }
+
             return rowEntries;
+        }
+
+        public void ExecuteNonQuery(string query)
+        {
+            ExecuteNonQuery(query, new Dictionary<string, object>());
+        }
+
+        public void ExecuteNonQuery(string query, Dictionary<string, object> parameters)
+        {
+            using var conn = OpenConnection();
+            using var cmd = new MySqlCommand(query, conn);
+            foreach (var (key, value) in parameters)
+            {
+                cmd.Parameters.AddWithValue(key, value);
+            }
+
+            cmd.ExecuteNonQuery();
         }
     }
 }

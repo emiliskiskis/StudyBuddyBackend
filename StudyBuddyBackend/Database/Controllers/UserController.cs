@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using MySql.Data.MySqlClient;
 using StudyBuddyBackend.Database.Entities;
-using StudyBuddyBackend.Database.Managers;
+using StudyBuddyBackend.Database.Repositories;
 
 namespace StudyBuddyBackend.Database.Controllers
 {
@@ -14,40 +11,71 @@ namespace StudyBuddyBackend.Database.Controllers
     [ApiController]
     public sealed class UserController : ControllerBase
     {
-        private readonly UserRepository userRepository;
+        private readonly ILogger<UserController> _logger;
+        private readonly UserRepository _userRepository;
 
-        public UserController(UserRepository userManager)
+        public UserController(ILogger<UserController> logger, UserRepository userManager)
         {
-            this.userRepository = userManager;
-        }
-
-        // GET: api/user/username
-        [HttpGet("{username}")]
-        public IActionResult Get(string username)
-        {
-            var optional = userRepository.Get(username);
-            if (optional.HasValue) return Ok(optional.Value);
-            else return NotFound();
+            _logger = logger;
+            _userRepository = userManager;
         }
 
         // POST: api/user
         [HttpPost]
-        public void Post([FromBody] string value)
+        public IActionResult Create([FromBody] User user)
         {
-            User x = JsonConvert.DeserializeObject<User>(value);
+            try
+            {
+                _userRepository.Create(user);
+                return Ok(_userRepository.Read(user.Username).Value);
+            }
+            catch (MySqlException e)
+            {
+                _logger.LogError(e.ToString());
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return StatusCode(500, e.ToString());
+            }
         }
 
-        // PUT: api/user/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        // GET: api/user/username
+        [HttpGet("{username}")]
+        public IActionResult Read(string username)
         {
-            User x = JsonConvert.DeserializeObject<User>(value);
+            var optional = _userRepository.Read(username);
+            if (optional.HasValue) return Ok(optional.Value);
+            return NotFound();
         }
 
-        // DELETE: api/user/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // PUT: api/user/username
+        [HttpPut("{username}")]
+        public IActionResult Update(string username, [FromBody] User newUser)
         {
+            return StatusCode(500, "Unimplemented");
+        }
+
+        // DELETE: api/user/username
+        [HttpDelete("{username}")]
+        public IActionResult Delete(string username)
+        {
+            try
+            {
+                _userRepository.Delete(username);
+                return Ok();
+            }
+            catch (MySqlException e)
+            {
+                _logger.LogError(e.ToString());
+                return BadRequest(e.ToString());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return StatusCode(500, e.ToString());
+            }
         }
     }
 }
