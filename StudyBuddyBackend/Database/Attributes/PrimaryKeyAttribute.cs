@@ -2,7 +2,7 @@
 
 namespace StudyBuddyBackend.Database.Attributes
 {
-    public class IdAttribute : Attribute
+    public class PrimaryKeyAttribute : Attribute
     {
     }
 }
