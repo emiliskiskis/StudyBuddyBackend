@@ -6,12 +6,13 @@ using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 
-namespace StudyBuddyBackend.Database
+namespace StudyBuddyBackend.Database.Core
 {
     public sealed class Database
     {
         private readonly string _connectionString;
         private readonly ILogger<Database> _logger;
+        public string DatabaseName { get; }
 
         public Database(ILogger<Database> logger)
         {
@@ -25,6 +26,7 @@ namespace StudyBuddyBackend.Database
                     $"database={mysqlConfig["database"]};" +
                     $"user id={mysqlConfig["username"]};" +
                     $"password={mysqlConfig["password"]}";
+                DatabaseName = mysqlConfig["database"];
             }
             catch (FileNotFoundException e)
             {

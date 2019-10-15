@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace StudyBuddyBackend.Database.Repositories
+namespace StudyBuddyBackend.Database.Core
 {
     /// <summary>
     ///     An interface describing an object-relational map with a MySQL table.

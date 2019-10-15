@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
-using StudyBuddyBackend.Database.Attributes;
+using StudyBuddyBackend.Database.Core.Attributes;
 
-namespace StudyBuddyBackend.Database.Repositories
+namespace StudyBuddyBackend.Database.Core
 {
     public abstract class CrudRepository<T, TX> : ICrudRepository<T, TX>
     {
@@ -32,17 +32,19 @@ namespace StudyBuddyBackend.Database.Repositories
             _primaryField = (from prop in typeof(T).GetProperties()
                 where Attribute.IsDefined(prop, typeof(PrimaryKeyAttribute))
                 select prop).ToList()[0].Name.ToLower();
-            _table = typeof(T).Name.Replace("Repository", "") + "s";
+            _table = GetTableName(typeof(T));
             try
             {
                 CreateTable();
             }
             catch (MySqlException e)
             {
-                if ((int) e.Code == (int) MySqlErrorCode.TableExists)
+                if ((int)e.Code == (int)MySqlErrorCode.TableExists)
                 {
                     _logger.LogWarning(e.ToString());
                 }
+
+                throw;
             }
             catch (Exception e)
             {
@@ -93,12 +95,14 @@ namespace StudyBuddyBackend.Database.Repositories
 
         private void CreateTable()
         {
-            string query = _propertyColumnList.Aggregate("CREATE TABLE Users(",
+            string query = _propertyColumnList.Aggregate($"CREATE TABLE {_table}(",
                 (current, keyValuePair) =>
                     current +
                     $"{GetColumnName(keyValuePair.Key)} " +
                     $"{GetSqlPropertyType(keyValuePair.Key)} " +
                     $"{GetPropertyAttributes(keyValuePair.Key)},");
+            query = _propertyColumnList.Aggregate(query,
+                (current, keyValuePair) => current + GetForeignKeyConstraints(keyValuePair.Key));
             query = query.Substring(0, query.Length - 1) + ");";
             _logger.LogDebug(query);
             _database.ExecuteNonQuery(query);
@@ -118,43 +122,68 @@ namespace StudyBuddyBackend.Database.Repositories
         {
             if (property.PropertyType == typeof(string))
             {
-                return Attribute.IsDefined(property, typeof(TextAttribute)) ? "text" : "varchar(255)";
+                return Attribute.IsDefined(property, typeof(TextAttribute)) ? "TEXT" : "VARCHAR(255)";
             }
 
             if (property.PropertyType == typeof(int))
             {
-                return "int";
+                return "INT";
             }
 
             if (property.PropertyType == typeof(DateTime))
             {
-                return "datetime";
+                return "DATETIME";
             }
 
             return "";
         }
-        
+
         private static string GetPropertyAttributes(PropertyInfo property)
         {
             var attributes = "";
 
             if (Attribute.IsDefined(property, typeof(PrimaryKeyAttribute)))
             {
-                attributes += " primary key not null";
+                attributes += "PRIMARY KEY NOT NULL";
                 if (Attribute.IsDefined(property, typeof(AutoIncrementAttribute)))
                 {
-                    attributes += " auto_increment";
+                    attributes += " AUTO_INCREMENT";
                 }
 
                 return attributes;
             }
 
+
             if (!Attribute.IsDefined(property, typeof(NullableAttribute)))
             {
-                attributes += " not null";
+                attributes += " NOT NULL";
             }
 
-            return attributes;
+            return attributes.Substring(1);
+        }
+
+        private string GetForeignKeyConstraints(PropertyInfo property)
+        {
+            if (Attribute.IsDefined(property, typeof(ForeignKeyAttribute)))
+            {
+                var foreignKeyRepositoryType = ((ForeignKeyAttribute)property
+                    .GetCustomAttributes(typeof(ForeignKeyAttribute), false)
+                    .First())?.RepositoryType;
+
+                var entityType =
+                    (foreignKeyRepositoryType ?? throw new NullReferenceException()).GetInterfaces()
+                    .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICrudRepository<,>))
+                    .GetGenericArguments()[0];
+
+                //_logger.LogDebug(JsonConvert.SerializeObject(foreignKeyProperties));
+
+                return
+                    $"FOREIGN KEY ({GetColumnName(property)}) REFERENCES {_database.DatabaseName}.{GetTableName(foreignKeyRepositoryType)}(" +
+                    GetColumnName(entityType.GetProperties().First(prop =>
+                        Attribute.IsDefined(prop, typeof(PrimaryKeyAttribute)))) + "),";
+            }
+
+            return "";
         }
 
         private static T Convert(object o)
@@ -173,8 +202,7 @@ namespace StudyBuddyBackend.Database.Repositories
             {
                 return (
                     (JsonPropertyAttribute)
-                    typeof(T).GetProperty(property.Name)
-                        ?.GetCustomAttributes(typeof(JsonPropertyAttribute), false)
+                    property.GetCustomAttributes(typeof(JsonPropertyAttribute), false)
                         .First()
                 )?.PropertyName;
             }
@@ -198,6 +226,11 @@ namespace StudyBuddyBackend.Database.Repositories
         {
             return typeof(T).GetProperties()
                 .ToDictionary(GetColumnName, property => property.GetValue(el));
+        }
+
+        private static string GetTableName(Type t)
+        {
+            return t.Name.Replace("Repository", "") + "s";
         }
     }
 }

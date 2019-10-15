@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Repositories;
 
@@ -24,6 +25,8 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost]
         public IActionResult Create([FromBody] User user)
         {
+            _logger.LogDebug(JsonConvert.SerializeObject(user));
+            //User user = JsonConvert.DeserializeObject<User>(body);
             try
             {
                 _userRepository.Create(user);
@@ -31,8 +34,14 @@ namespace StudyBuddyBackend.Database.Controllers
             }
             catch (MySqlException e)
             {
-                _logger.LogError(e.ToString());
-                return BadRequest(e.Message);
+                switch ((int)e.Code)
+                {
+                    case (int)MySqlErrorCode.DuplicateKeyEntry:
+                        _logger.LogError(e.ToString());
+                        return Conflict(e.Message);
+                    default:
+                        return BadRequest(e.Message);
+                }
             }
             catch (Exception e)
             {

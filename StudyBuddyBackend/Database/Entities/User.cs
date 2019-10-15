@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
-using StudyBuddyBackend.Database.Attributes;
+using StudyBuddyBackend.Database.Core.Attributes;
+using StudyBuddyBackend.Database.Repositories;
 
 namespace StudyBuddyBackend.Database.Entities
 {
     [Serializable]
     public class User
     {
-        [PrimaryKey]
-        public string Username { get; set; }
+        [PrimaryKey] public string Username { get; set; }
 
         public string Password { get; set; }
         public string Salt { get; set; }
@@ -17,7 +17,7 @@ namespace StudyBuddyBackend.Database.Entities
         [JsonProperty("first_name")]
         [JsonPropertyName("first_name")]
         public string FirstName { get; set; }
-        
+
         [JsonProperty("last_name")]
         [JsonPropertyName("last_name")]
         public string LastName { get; set; }

@@ -20,8 +20,8 @@ namespace StudyBuddyBackend
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddSingleton<Database.Core.Database>();
             services.AddSingleton<UserRepository>();
-            services.AddSingleton<Database.Database>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
