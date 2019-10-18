@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using StudyBuddyBackend.Database.Core.Attributes;
@@ -22,6 +23,6 @@ namespace StudyBuddyBackend.Database.Entities
         [JsonPropertyName("last_name")]
         public string LastName { get; set; }
 
-        public string Email { get; set; }
+        [EmailAddress] public string Email { get; set; }
     }
 }

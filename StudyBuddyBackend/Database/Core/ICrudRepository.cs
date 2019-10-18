@@ -8,7 +8,7 @@ namespace StudyBuddyBackend.Database.Core
     /// </summary>
     /// <typeparam name="T">Entity type.</typeparam>
     /// <typeparam name="TX">Entity primary key type.</typeparam>
-    public interface ICrudRepository<T, in TX>
+    internal interface ICrudRepository<T, in TX>
     {
         /// <summary>
         ///     Get all rows from the table.
@@ -32,8 +32,10 @@ namespace StudyBuddyBackend.Database.Core
         /// <summary>
         ///     Updates the element entry in the table, if exists.
         /// </summary>
-        /// <param name="el">Entity with values to be updated and the primary key.</param>
-        void Update(T el);
+        /// <param name="id">Value of primary field.</param>
+        /// <param name="fields">Names of fields to be updated.</param>
+        /// <param name="newEl">Entity with values to be updated.</param>
+        void Update(TX id, IEnumerable<string> fields, T newEl);
 
         /// <summary>
         ///     Deletes the element entry in the table, if exists.

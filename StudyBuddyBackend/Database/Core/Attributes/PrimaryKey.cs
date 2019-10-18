@@ -1,6 +1,6 @@
 ﻿namespace StudyBuddyBackend.Database.Core.Attributes
 {
-    public class PrimaryKeyAttribute : DatabaseAttribute
+    public class PrimaryKey : DatabaseAttribute
     {
     }
 }

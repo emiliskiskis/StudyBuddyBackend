@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using StudyBuddyBackend.Database.Core.Attributes;
+using Nullable = StudyBuddyBackend.Database.Core.Attributes.Nullable;
 
 namespace StudyBuddyBackend.Database.Core
 {
@@ -29,9 +30,8 @@ namespace StudyBuddyBackend.Database.Core
             }
 
             _database = database;
-            _primaryField = (from prop in typeof(T).GetProperties()
-                where Attribute.IsDefined(prop, typeof(PrimaryKeyAttribute))
-                select prop).ToList()[0].Name.ToLower();
+            _primaryField = typeof(T).GetProperties()
+                .Where(prop => Attribute.IsDefined(prop, typeof(PrimaryKey))).ToList()[0].Name.ToLower();
             _table = GetTableName(typeof(T));
             try
             {
@@ -39,12 +39,12 @@ namespace StudyBuddyBackend.Database.Core
             }
             catch (MySqlException e)
             {
-                if ((int)e.Code == (int)MySqlErrorCode.TableExists)
+                _logger.LogError(e.Number.ToString());
+                if (e.Number == (int)MySqlErrorCode.TableExists)
                 {
                     _logger.LogWarning(e.ToString());
                 }
-
-                throw;
+                else throw;
             }
             catch (Exception e)
             {
@@ -55,15 +55,14 @@ namespace StudyBuddyBackend.Database.Core
 
         public List<T> ReadAll()
         {
-            return ConvertAll(_database.ExecuteQuery($"SELECT * FROM {_table};"));
+            var list = _database.ExecuteQuery($"SELECT * FROM {_table};");
+            return ConvertAll(list);
         }
 
         public void Create(T el)
         {
             string query = $"INSERT INTO {_table}({GetColumns()}) VALUES (" +
                            $"{GetValueParams()});";
-            _logger.LogDebug(query);
-            _logger.LogDebug(JsonConvert.SerializeObject(GetValues(el)));
             _database.ExecuteNonQuery(query, GetValues(el));
         }
 
@@ -82,9 +81,22 @@ namespace StudyBuddyBackend.Database.Core
             }
         }
 
-        public void Update(T el)
+        public void Update(TX id, IEnumerable<string> keys, T el)
         {
-            throw new NotImplementedException();
+            var parameters = GetValues(el);
+            if (!parameters.ContainsKey(_primaryField))
+            {
+                parameters.Add(_primaryField, id);
+            }
+            else
+            {
+                parameters[_primaryField] = id;
+            }
+
+            string query = $"UPDATE {_table} " +
+                           GetUpdateValueParams(keys) + " " +
+                           $"WHERE {_primaryField} = @{_primaryField};";
+            _database.ExecuteNonQuery(query, parameters);
         }
 
         public void Delete(TX id)
@@ -101,10 +113,9 @@ namespace StudyBuddyBackend.Database.Core
                     $"{GetColumnName(keyValuePair.Key)} " +
                     $"{GetSqlPropertyType(keyValuePair.Key)} " +
                     $"{GetPropertyAttributes(keyValuePair.Key)},");
-            query = _propertyColumnList.Aggregate(query,
-                (current, keyValuePair) => current + GetForeignKeyConstraints(keyValuePair.Key));
+            query += GetPrimaryKeyConstraint(typeof(T)) + ",";
+            query += GetForeignKeyConstraints(_propertyColumnList);
             query = query.Substring(0, query.Length - 1) + ");";
-            _logger.LogDebug(query);
             _database.ExecuteNonQuery(query);
         }
 
@@ -114,15 +125,13 @@ namespace StudyBuddyBackend.Database.Core
             var matches = Regex.Matches(JsonConvert.SerializeObject(schema),
                 "\"Type\":\"(.*?)\"").ToList();
             var types = matches.Select(t => t.Groups[1].Value).ToList();
-
-            _logger.LogDebug(JsonConvert.SerializeObject(types));
         }
-
+        
         private static string GetSqlPropertyType(PropertyInfo property)
         {
             if (property.PropertyType == typeof(string))
             {
-                return Attribute.IsDefined(property, typeof(TextAttribute)) ? "TEXT" : "VARCHAR(255)";
+                return Attribute.IsDefined(property, typeof(Text)) ? "TEXT" : "VARCHAR(255)";
             }
 
             if (property.PropertyType == typeof(int))
@@ -142,32 +151,51 @@ namespace StudyBuddyBackend.Database.Core
         {
             var attributes = "";
 
-            if (Attribute.IsDefined(property, typeof(PrimaryKeyAttribute)))
+            if (Attribute.IsDefined(property, typeof(PrimaryKey)))
             {
-                attributes += "PRIMARY KEY NOT NULL";
-                if (Attribute.IsDefined(property, typeof(AutoIncrementAttribute)))
+                attributes += " NOT NULL";
+                if (Attribute.IsDefined(property, typeof(AutoIncrement)))
                 {
                     attributes += " AUTO_INCREMENT";
                 }
 
-                return attributes;
+                return attributes.Substring(1);
             }
 
-
-            if (!Attribute.IsDefined(property, typeof(NullableAttribute)))
+            if (!Attribute.IsDefined(property, typeof(Nullable)))
             {
                 attributes += " NOT NULL";
+            }
+
+            if (Attribute.IsDefined(property, typeof(CurrentDateTime)))
+            {
+                attributes += " DEFAULT CURRENT_TIMESTAMP";
             }
 
             return attributes.Substring(1);
         }
 
-        private string GetForeignKeyConstraints(PropertyInfo property)
+        private static string GetPrimaryKeyConstraint(Type t)
         {
-            if (Attribute.IsDefined(property, typeof(ForeignKeyAttribute)))
+            string constraint = t.GetProperties().Where(prop => Attribute.IsDefined(prop, typeof(PrimaryKey)))
+                .Aggregate(
+                    "PRIMARY KEY (", (current, prop) => current + GetColumnName(prop) + ",");
+            return constraint.Substring(0, constraint.Length - 1) + ")";
+        }
+
+        private string GetForeignKeyConstraints(List<KeyValuePair<PropertyInfo, string>> propertyColumnList)
+        {
+            string constraints = propertyColumnList.Aggregate("",
+                (current, keyValuePair) => current + GetForeignKeyConstraint(keyValuePair.Key));
+            return constraints.Length > 0 ? constraints.Substring(0, constraints.Length - 1) : "";
+        }
+
+        private string GetForeignKeyConstraint(PropertyInfo property)
+        {
+            if (Attribute.IsDefined(property, typeof(ForeignKey)))
             {
-                var foreignKeyRepositoryType = ((ForeignKeyAttribute)property
-                    .GetCustomAttributes(typeof(ForeignKeyAttribute), false)
+                var foreignKeyRepositoryType = ((ForeignKey)property
+                    .GetCustomAttributes(typeof(ForeignKey), false)
                     .First())?.RepositoryType;
 
                 var entityType =
@@ -175,12 +203,10 @@ namespace StudyBuddyBackend.Database.Core
                     .First(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICrudRepository<,>))
                     .GetGenericArguments()[0];
 
-                //_logger.LogDebug(JsonConvert.SerializeObject(foreignKeyProperties));
-
                 return
                     $"FOREIGN KEY ({GetColumnName(property)}) REFERENCES {_database.DatabaseName}.{GetTableName(foreignKeyRepositoryType)}(" +
                     GetColumnName(entityType.GetProperties().First(prop =>
-                        Attribute.IsDefined(prop, typeof(PrimaryKeyAttribute)))) + "),";
+                        Attribute.IsDefined(prop, typeof(PrimaryKey)))) + "),";
             }
 
             return "";
@@ -220,6 +246,12 @@ namespace StudyBuddyBackend.Database.Core
         {
             return _propertyColumnList.Aggregate("", (current, keyValuePair) => current + $",@{keyValuePair.Value}")
                 .Substring(1);
+        }
+
+        private static string GetUpdateValueParams(IEnumerable<string> keys)
+        {
+            string parameters = $"SET {keys.Aggregate("", (current, key) => current + $"{key} = @{key},")}";
+            return parameters.Substring(0, parameters.Length - 1);
         }
 
         private static Dictionary<string, object> GetValues(T el)

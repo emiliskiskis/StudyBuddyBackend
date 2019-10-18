@@ -58,6 +58,9 @@ namespace StudyBuddyBackend.Database.Core
                     cmd.Parameters.AddWithValue(key, value);
                 }
 
+                _logger.LogDebug(JsonConvert.SerializeObject(DateTime.Now) + "\n" + cmd.CommandText + "\n" +
+                                 GetParameterString(cmd.Parameters));
+
                 using var reader = cmd.ExecuteReader();
                 var columns = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
                 if (reader.HasRows)
@@ -97,7 +100,24 @@ namespace StudyBuddyBackend.Database.Core
                 cmd.Parameters.AddWithValue(key, value);
             }
 
+            _logger.LogDebug(JsonConvert.SerializeObject(DateTime.Now) + "\n" + cmd.CommandText + "\n" +
+                             GetParameterString(cmd.Parameters));
+            _logger.LogDebug(cmd.CommandText);
+
             cmd.ExecuteNonQuery();
+        }
+
+        private static string GetParameterString(MySqlParameterCollection parameters)
+        {
+            if (parameters.Count <= 0)
+            {
+                return "";
+            }
+
+            string parameterString = parameters.Cast<MySqlParameter>().Aggregate("",
+                (current, parameter) => current + $"{parameter.ParameterName}: {parameter.Value}, ");
+
+            return parameterString.Substring(0, parameterString.Length - 2);
         }
     }
 }

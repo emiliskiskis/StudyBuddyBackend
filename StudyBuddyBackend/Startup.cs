@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Linq;
+using System.Reflection;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using StudyBuddyBackend.Database.Repositories;
+using StudyBuddyBackend.Database.Core;
 
 namespace StudyBuddyBackend
 {
@@ -21,7 +23,7 @@ namespace StudyBuddyBackend
         {
             services.AddControllers();
             services.AddSingleton<Database.Core.Database>();
-            services.AddSingleton<UserRepository>();
+            AddRepositories(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,6 +42,19 @@ namespace StudyBuddyBackend
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private static void AddRepositories(IServiceCollection services)
+        {
+            var repositories = Assembly.GetExecutingAssembly().GetTypes()
+                .Where(t => t.IsClass &&
+                            t.GetInterfaces().Any(i =>
+                                i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICrudRepository<,>)) &&
+                            !t.IsAbstract);
+            foreach (var repository in repositories)
+            {
+                services.AddSingleton(repository);
+            }
         }
     }
 }

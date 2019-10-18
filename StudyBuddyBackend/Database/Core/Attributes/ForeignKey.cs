@@ -2,9 +2,9 @@ using System;
 
 namespace StudyBuddyBackend.Database.Core.Attributes
 {
-    public class ForeignKeyAttribute : DatabaseAttribute
+    public class ForeignKey : DatabaseAttribute
     {
-        public ForeignKeyAttribute(Type repositoryType)
+        public ForeignKey(Type repositoryType)
         {
             RepositoryType = repositoryType;
         }

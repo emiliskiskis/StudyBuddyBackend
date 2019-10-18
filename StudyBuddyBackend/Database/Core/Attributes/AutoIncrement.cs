@@ -1,6 +1,6 @@
 namespace StudyBuddyBackend.Database.Core.Attributes
 {
-    public class TextAttribute : DatabaseAttribute
+    public class AutoIncrement : DatabaseAttribute
     {
     }
 }
