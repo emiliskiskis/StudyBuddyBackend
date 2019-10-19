@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
+using StudyBuddyBackend.Database.Validators;
 
 namespace StudyBuddyBackend.Database.Controllers
 {
@@ -15,11 +19,13 @@ namespace StudyBuddyBackend.Database.Controllers
     {
         private readonly DatabaseContext _databaseContext;
         private readonly ILogger _logger;
+        private readonly UserValidator _userValidator;
 
         public UserController(DatabaseContext databaseContext, ILogger<UserController> logger)
         {
             _databaseContext = databaseContext;
             _logger = logger;
+            _userValidator = new UserValidator();
         }
 
         [HttpPost]
@@ -72,7 +78,6 @@ namespace StudyBuddyBackend.Database.Controllers
             }
 
             return _databaseContext.Users.Find(username);
-
         }
 
         [HttpPatch("{username}")]
@@ -83,8 +88,34 @@ namespace StudyBuddyBackend.Database.Controllers
             {
                 return NotFound();
             }
-            
+
             patch.ApplyTo(user);
+            var validationResult = _userValidator.Validate(user);
+
+            if (!validationResult.IsValid)
+            {
+                var groupedErrors = new Dictionary<string, ICollection<string>>();
+                
+                foreach (var error in validationResult.Errors)
+                {
+                    var field = error.PropertyName;
+                    if (!groupedErrors.ContainsKey(field))
+                    {
+                        groupedErrors.Add(field, new List<string>());
+                    }
+
+                    groupedErrors[field].Add(error.ErrorMessage);
+                }
+                
+                var errorArrays = new Dictionary<string, string[]>();
+
+                foreach (var (fieldName, errorList) in groupedErrors)
+                {
+                    errorArrays.Add(fieldName, errorList.ToArray());
+                }
+                
+                return BadRequest(new ValidationProblemDetails(errorArrays));
+            }
 
             _databaseContext.Users.Update(user);
             _databaseContext.SaveChanges();

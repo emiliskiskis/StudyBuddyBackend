@@ -6,6 +6,7 @@
     <UserSecretsId>6468137e-ccb7-4b79-a1c1-4b0259ef2e8c</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="8.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="3.0.0" />
