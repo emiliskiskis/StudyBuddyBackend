@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using StudyBuddyBackend.Database.Contexts;
+using StudyBuddyBackend.Hubs;
 
 namespace StudyBuddyBackend
 {
@@ -22,6 +23,7 @@ namespace StudyBuddyBackend
         {
             services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(_connectionString));
+            services.AddSingleton<ChatHub>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

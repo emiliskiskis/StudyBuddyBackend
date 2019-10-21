@@ -9,11 +9,12 @@ namespace StudyBuddyBackend.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Chats",
-                columns: table => new
+                "Chats",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                    Id = table.Column<int>()
+                        .Annotation("Npgsql:ValueGenerationStrategy",
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 },
                 constraints: table =>
                 {
@@ -21,15 +22,15 @@ namespace StudyBuddyBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
+                "Users",
+                table => new
                 {
-                    Username = table.Column<string>(nullable: false),
-                    Password = table.Column<string>(nullable: false),
-                    Salt = table.Column<string>(nullable: false),
-                    FirstName = table.Column<string>(nullable: false),
-                    LastName = table.Column<string>(nullable: false),
-                    Email = table.Column<string>(nullable: false)
+                    Username = table.Column<string>(),
+                    Password = table.Column<string>(),
+                    Salt = table.Column<string>(),
+                    FirstName = table.Column<string>(),
+                    LastName = table.Column<string>(),
+                    Email = table.Column<string>()
                 },
                 constraints: table =>
                 {
@@ -37,12 +38,13 @@ namespace StudyBuddyBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Messages",
-                columns: table => new
+                "Messages",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Username = table.Column<string>(nullable: false),
+                    Id = table.Column<int>()
+                        .Annotation("Npgsql:ValueGenerationStrategy",
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(),
                     Text = table.Column<string>(nullable: true),
                     SentAt = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     ChatId = table.Column<int>(nullable: true)
@@ -51,25 +53,26 @@ namespace StudyBuddyBackend.Migrations
                 {
                     table.PrimaryKey("PK_Messages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Messages_Chats_ChatId",
-                        column: x => x.ChatId,
-                        principalTable: "Chats",
-                        principalColumn: "Id",
+                        "FK_Messages_Chats_ChatId",
+                        x => x.ChatId,
+                        "Chats",
+                        "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Messages_Users_Username",
-                        column: x => x.Username,
-                        principalTable: "Users",
-                        principalColumn: "Username",
+                        "FK_Messages_Users_Username",
+                        x => x.Username,
+                        "Users",
+                        "Username",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserChat",
-                columns: table => new
+                "UserChat",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<int>()
+                        .Annotation("Npgsql:ValueGenerationStrategy",
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ChatId = table.Column<int>(nullable: true),
                     Username = table.Column<string>(nullable: true)
                 },
@@ -77,53 +80,53 @@ namespace StudyBuddyBackend.Migrations
                 {
                     table.PrimaryKey("PK_UserChat", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserChat_Chats_ChatId",
-                        column: x => x.ChatId,
-                        principalTable: "Chats",
-                        principalColumn: "Id",
+                        "FK_UserChat_Chats_ChatId",
+                        x => x.ChatId,
+                        "Chats",
+                        "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_UserChat_Users_Username",
-                        column: x => x.Username,
-                        principalTable: "Users",
-                        principalColumn: "Username",
+                        "FK_UserChat_Users_Username",
+                        x => x.Username,
+                        "Users",
+                        "Username",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_ChatId",
-                table: "Messages",
-                column: "ChatId");
+                "IX_Messages_ChatId",
+                "Messages",
+                "ChatId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_Username",
-                table: "Messages",
-                column: "Username");
+                "IX_Messages_Username",
+                "Messages",
+                "Username");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserChat_ChatId",
-                table: "UserChat",
-                column: "ChatId");
+                "IX_UserChat_ChatId",
+                "UserChat",
+                "ChatId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserChat_Username",
-                table: "UserChat",
-                column: "Username");
+                "IX_UserChat_Username",
+                "UserChat",
+                "Username");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Messages");
+                "Messages");
 
             migrationBuilder.DropTable(
-                name: "UserChat");
+                "UserChat");
 
             migrationBuilder.DropTable(
-                name: "Chats");
+                "Chats");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                "Users");
         }
     }
 }

@@ -8,7 +8,18 @@ namespace StudyBuddyBackend.Database.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public User User;
-        public Chat Chat;
+        public Chat Chat { get; set; }
+        public User User { get; set; }
+
+        public UserChat()
+        {
+            
+        }
+
+        public UserChat(User user, Chat chat)
+        {
+            User = user;
+            Chat = chat;
+        }
     }
 }

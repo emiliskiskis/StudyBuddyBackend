@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
+using StudyBuddyBackend.Database.Models;
 using StudyBuddyBackend.Database.Validators;
 
 namespace StudyBuddyBackend.Database.Controllers
@@ -37,7 +35,7 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpGet("{username}")]
-        public ActionResult<User> ReadUser(string username)
+        public ActionResult<object> ReadUser(string username)
         {
             var user = _databaseContext.Users.Find(username);
             if (user == null)
@@ -45,17 +43,29 @@ namespace StudyBuddyBackend.Database.Controllers
                 return NotFound();
             }
 
-            return user;
+            return new PasswordlessUser(user);
+        }
+
+        [HttpGet("{username}/salt")]
+        public ActionResult<SaltBody> ReadUserSalt(string username)
+        {
+            var user = _databaseContext.Users.Find(username);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            return new SaltBody(user.Salt);
         }
 
         [HttpGet]
-        public ActionResult<ICollection<User>> ReadAllUsers()
+        public ActionResult<IEnumerable<object>> ReadAllUsers()
         {
-            return _databaseContext.Users.ToList();
+            return _databaseContext.Users.Select(user => new PasswordlessUser(user)).ToList();
         }
 
         [HttpPut("{username}")]
-        public ActionResult<User> UpdateUser(string username, [FromBody] User user)
+        public ActionResult<object> UpdateUser(string username, [FromBody] User user)
         {
             if (username != user.Username)
             {
@@ -77,11 +87,12 @@ namespace StudyBuddyBackend.Database.Controllers
                 throw;
             }
 
-            return _databaseContext.Users.Find(username);
+            var updatedUser = _databaseContext.Users.Find(username);
+            return new PasswordlessUser(updatedUser);
         }
 
         [HttpPatch("{username}")]
-        public ActionResult<User> PatchUser(string username, [FromBody] JsonPatchDocument<User> patch)
+        public ActionResult<object> PatchUser(string username, [FromBody] JsonPatchDocument<User> patch)
         {
             var user = _databaseContext.Users.Find(username);
             if (user == null)
@@ -95,7 +106,7 @@ namespace StudyBuddyBackend.Database.Controllers
             if (!validationResult.IsValid)
             {
                 var groupedErrors = new Dictionary<string, ICollection<string>>();
-                
+
                 foreach (var error in validationResult.Errors)
                 {
                     var field = error.PropertyName;
@@ -106,14 +117,14 @@ namespace StudyBuddyBackend.Database.Controllers
 
                     groupedErrors[field].Add(error.ErrorMessage);
                 }
-                
+
                 var errorArrays = new Dictionary<string, string[]>();
 
                 foreach (var (fieldName, errorList) in groupedErrors)
                 {
                     errorArrays.Add(fieldName, errorList.ToArray());
                 }
-                
+
                 return BadRequest(new ValidationProblemDetails(errorArrays));
             }
 
@@ -124,7 +135,7 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpDelete("{username}")]
-        public ActionResult<User> DeleteUser(string username)
+        public ActionResult<object> DeleteUser(string username)
         {
             var user = _databaseContext.Users.Find(username);
             if (user == null)
@@ -135,7 +146,7 @@ namespace StudyBuddyBackend.Database.Controllers
             _databaseContext.Users.Remove(user);
             _databaseContext.SaveChanges();
 
-            return user;
+            return new PasswordlessUser(user);
         }
 
         private bool UserExists(string username)

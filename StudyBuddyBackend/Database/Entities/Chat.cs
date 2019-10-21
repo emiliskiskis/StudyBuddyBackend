@@ -1,14 +1,23 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace StudyBuddyBackend.Database.Entities
 {
     public class Chat
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
+        [Key]
+        public string GroupName { get; set; }
         public ICollection<UserChat> Users { get; set; }
         public ICollection<Message> Messages { get; set; }
+
+        public Chat()
+        {
+
+        }
+
+        public Chat(string groupName)
+        {
+            GroupName = groupName;
+        }
     }
 }

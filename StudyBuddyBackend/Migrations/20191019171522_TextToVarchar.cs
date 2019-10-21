@@ -7,70 +7,70 @@ namespace StudyBuddyBackend.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "Salt",
-                table: "Users",
-                type: "VARCHAR",
+                "Salt",
+                "Users",
+                "VARCHAR",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
-                name: "Password",
-                table: "Users",
-                type: "VARCHAR",
+                "Password",
+                "Users",
+                "VARCHAR",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
-                name: "LastName",
-                table: "Users",
-                type: "VARCHAR",
+                "LastName",
+                "Users",
+                "VARCHAR",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
-                table: "Users",
-                type: "VARCHAR",
+                "FirstName",
+                "Users",
+                "VARCHAR",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
-                name: "Email",
-                table: "Users",
-                type: "VARCHAR",
+                "Email",
+                "Users",
+                "VARCHAR",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                table: "Users",
-                type: "VARCHAR",
+                "Username",
+                "Users",
+                "VARCHAR",
                 maxLength: 255,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
 
             migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                table: "UserChat",
+                "Username",
+                "UserChat",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "text",
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                table: "Messages",
+                "Username",
+                "Messages",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "text");
@@ -79,71 +79,71 @@ namespace StudyBuddyBackend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "Salt",
-                table: "Users",
-                type: "text",
+                "Salt",
+                "Users",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "VARCHAR",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Password",
-                table: "Users",
-                type: "text",
+                "Password",
+                "Users",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "VARCHAR",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
-                name: "LastName",
-                table: "Users",
-                type: "text",
+                "LastName",
+                "Users",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "VARCHAR",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
-                name: "FirstName",
-                table: "Users",
-                type: "text",
+                "FirstName",
+                "Users",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "VARCHAR",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Email",
-                table: "Users",
-                type: "text",
+                "Email",
+                "Users",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "VARCHAR",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                table: "Users",
-                type: "text",
+                "Username",
+                "Users",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string),
                 oldType: "VARCHAR",
                 oldMaxLength: 255);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                table: "UserChat",
-                type: "text",
+                "Username",
+                "UserChat",
+                "text",
                 nullable: true,
                 oldClrType: typeof(string),
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Username",
-                table: "Messages",
-                type: "text",
+                "Username",
+                "Messages",
+                "text",
                 nullable: false,
                 oldClrType: typeof(string));
         }
