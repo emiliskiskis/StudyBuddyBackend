@@ -45,7 +45,7 @@ namespace StudyBuddyBackend.Hubs
 
         public Task SendMessage(string groupName, string messageText)
         {
-            return Clients.Group(groupName).SendAsync(messageText);
+            return Clients.Group(groupName).SendAsync("SignalRGet", );
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
