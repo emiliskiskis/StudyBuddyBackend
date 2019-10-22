@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -11,7 +12,7 @@ namespace StudyBuddyBackend.Hubs
 {
     public class ChatHub : Hub
     {
-        private class ActiveUser
+       private class ActiveUser
         {
             internal User User { get; set; }
             internal string ConnectionId { get; set; }
@@ -37,8 +38,8 @@ namespace StudyBuddyBackend.Hubs
         {
             _databaseContext = databaseContext;
         }
-
-        public String GroupName;
+        
+        public String GroupName { get; set; }
 
         public async Task Connect(string username, string groupName)
         {

@@ -23,7 +23,7 @@ namespace StudyBuddyBackend
         {
             services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(_connectionString));
-            services.AddSingleton<ChatHub>();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

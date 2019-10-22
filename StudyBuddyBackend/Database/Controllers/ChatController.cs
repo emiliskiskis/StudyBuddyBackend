@@ -25,8 +25,8 @@ namespace StudyBuddyBackend.Database.Controllers
             _chatHub = chatHub;
         }
         
-        [HttpPost]
-        public async Task<ActionResult<String>> AddUserToGroup([FromBody] String username)
+      [HttpPost]
+      public async Task<ActionResult<String>> AddUserToGroup([FromBody] String username)
         {
             await (_chatHub.Connect(username, null));
             String groupName = _chatHub.GroupName;
