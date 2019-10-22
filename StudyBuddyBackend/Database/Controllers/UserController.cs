@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
-using StudyBuddyBackend.Database.Models;
+using StudyBuddyBackend.Database.Models.Response;
 using StudyBuddyBackend.Database.Validators;
 
 namespace StudyBuddyBackend.Database.Controllers

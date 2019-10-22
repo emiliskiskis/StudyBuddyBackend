@@ -7,8 +7,8 @@ namespace StudyBuddyBackend.Database.Entities
     {
         [Key]
         public string GroupName { get; set; }
-        public ICollection<UserChat> Users { get; set; }
-        public ICollection<Message> Messages { get; set; }
+        public ICollection<UserChat> Users { get; set; } = new List<UserChat>();
+        public ICollection<Message> Messages { get; set; } = new List<Message>();
 
         public Chat()
         {

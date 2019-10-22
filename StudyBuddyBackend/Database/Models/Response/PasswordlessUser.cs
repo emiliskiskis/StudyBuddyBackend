@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using StudyBuddyBackend.Database.Entities;
 
-namespace StudyBuddyBackend.Database.Models
+namespace StudyBuddyBackend.Database.Models.Response
 {
     public class PasswordlessUser
     {

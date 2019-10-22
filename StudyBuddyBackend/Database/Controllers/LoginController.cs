@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Contexts;
-using StudyBuddyBackend.Database.Models;
+using StudyBuddyBackend.Database.Models.Request;
 
 namespace StudyBuddyBackend.Database.Controllers
 {

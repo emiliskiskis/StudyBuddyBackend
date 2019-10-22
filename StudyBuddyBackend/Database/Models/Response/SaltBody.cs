@@ -1,4 +1,4 @@
-namespace StudyBuddyBackend.Database.Models
+namespace StudyBuddyBackend.Database.Models.Response
 {
     public class SaltBody
     {

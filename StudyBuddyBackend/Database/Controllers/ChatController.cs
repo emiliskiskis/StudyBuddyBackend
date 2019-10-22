@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Contexts;
-using StudyBuddyBackend.Hubs;
+using StudyBuddyBackend.Database.Entities;
+using StudyBuddyBackend.Database.Models.Request;
 
 namespace StudyBuddyBackend.Database.Controllers
 {
@@ -16,21 +13,28 @@ namespace StudyBuddyBackend.Database.Controllers
     {
         private readonly DatabaseContext _databaseContext;
         private readonly ILogger _logger;
-        private readonly ChatHub _chatHub;
 
-        public ChatController(DatabaseContext databaseContext, ILogger<UserController> logger, ChatHub chatHub)
+        public ChatController(DatabaseContext databaseContext, ILogger<UserController> logger)
         {
             _databaseContext = databaseContext;
             _logger = logger;
-            _chatHub = chatHub;
         }
         
-      [HttpPost]
-      public async Task<ActionResult<String>> AddUserToGroup([FromBody] String username)
+        [HttpPost]
+        public ActionResult<object> ConnectToUser(UserPair userPair)
         {
-            await (_chatHub.Connect(username, null));
-            String groupName = _chatHub.GroupName;
-            return Ok(groupName);
+            Chat chat = new Chat(new Guid().ToString());
+            User requester = _databaseContext.Users.Find(userPair.Username);
+            User connectee = _databaseContext.Users.Find(userPair.ConnectTo);
+            
+            if (requester == null) return BadRequest();
+            if (connectee == null) return NotFound();
+            
+            chat.Users.Add(new UserChat(requester, chat));
+            chat.Users.Add(new UserChat(connectee, chat));
+            
+            _databaseContext.Chats.Add(chat);
+            return new {chat.GroupName};
         }
     }
 }

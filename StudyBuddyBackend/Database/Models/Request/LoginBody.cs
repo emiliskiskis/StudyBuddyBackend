@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace StudyBuddyBackend.Database.Models
+namespace StudyBuddyBackend.Database.Models.Request
 {
     public class LoginBody
     {
