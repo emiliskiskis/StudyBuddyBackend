@@ -1,8 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace StudyBuddyBackend.Database.Models.Request
 {
     public class UserPair
     {
-        public string Username { get; set; }
-        public string ConnectTo { get; set; }
+        [Required] public string Username { get; set; }
+        [Required] public string ConnectTo { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace StudyBuddyBackend.Database.Entities
 {
     // Intermediary table to create a many-to-many relationship of users to chats
-    public class UserChat
+    public class UserInChat
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
@@ -11,12 +11,12 @@ namespace StudyBuddyBackend.Database.Entities
         public Chat Chat { get; set; }
         public User User { get; set; }
 
-        public UserChat()
+        public UserInChat()
         {
             
         }
 
-        public UserChat(User user, Chat chat)
+        public UserInChat(User user, Chat chat)
         {
             User = user;
             Chat = chat;

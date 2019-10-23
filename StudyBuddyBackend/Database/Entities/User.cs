@@ -31,6 +31,7 @@ namespace StudyBuddyBackend.Database.Entities
         [StringLength(255)]
         public string Email { get; set; }
 
-        public ICollection<UserChat> Chats { get; set; }
+        // Initializing lists because empty sets in database create null values
+        public ICollection<UserInChat> Chats { get; set; } = new List<UserInChat>();
     }
 }

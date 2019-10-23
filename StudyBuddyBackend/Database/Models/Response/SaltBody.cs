@@ -7,6 +7,6 @@ namespace StudyBuddyBackend.Database.Models.Response
             Salt = salt;
         }
 
-        public string Salt { get; set; }
+        public string Salt { get; }
     }
 }

@@ -7,7 +7,8 @@ namespace StudyBuddyBackend.Database.Entities
     {
         [Key]
         public string GroupName { get; set; }
-        public ICollection<UserChat> Users { get; set; } = new List<UserChat>();
+        // Initializing lists because empty sets in database create null values
+        public ICollection<UserInChat> Users { get; set; } = new List<UserInChat>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();
 
         public Chat()

@@ -12,6 +12,7 @@ namespace StudyBuddyBackend.Database.Entities
         public User User { get; set; }
         public string Text { get; set; }
 
+        // Auto-generated
         public DateTime SentAt { get; set; }
 
         public Message()

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Contexts;
@@ -19,21 +20,39 @@ namespace StudyBuddyBackend.Database.Controllers
             _databaseContext = databaseContext;
             _logger = logger;
         }
-        
+
         [HttpPost]
         public ActionResult<object> ConnectToUser(UserPair userPair)
         {
-            Chat chat = new Chat(new Guid().ToString());
+            // Requester is the person that initiated the request
             User requester = _databaseContext.Users.Find(userPair.Username);
+            // The connectee is the person that the requester wants to connect to
             User connectee = _databaseContext.Users.Find(userPair.ConnectTo);
-            
+
+            // If trying to connect nobody, it's a Bad Request
             if (requester == null) return BadRequest();
+            // If the person trying to connect to is not found, it's a Not Found
             if (connectee == null) return NotFound();
-            
-            chat.Users.Add(new UserChat(requester, chat));
-            chat.Users.Add(new UserChat(connectee, chat));
-            
+
+            // Check if a one-on-one chat already exists, since those are unique. 
+            var existingChat = _databaseContext.Chats.FirstOrDefault(c => c.Users.Count == 2 && c.Users.All(userChat =>
+                                                                              userChat.User.Username ==
+                                                                              userPair.Username ||
+                                                                              userChat.User.Username ==
+                                                                              userPair.ConnectTo));
+            if (existingChat != default)
+            {
+                // If it does, return the existing chat's group name.
+                return new {existingChat.GroupName};
+            }
+
+            // If a chat does not yet exist, create a new one, add both users to it and return the group name.
+            Chat chat = new Chat(Guid.NewGuid().ToString());
+            chat.Users.Add(new UserInChat(requester, chat));
+            chat.Users.Add(new UserInChat(connectee, chat));
+
             _databaseContext.Chats.Add(chat);
+            _databaseContext.SaveChanges();
             return new {chat.GroupName};
         }
     }

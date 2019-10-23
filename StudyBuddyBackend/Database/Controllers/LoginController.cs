@@ -21,17 +21,23 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost]
         public IActionResult ApproveLogin([FromBody] LoginBody loginBody)
         {
+            // Find the user
             var user = _databaseContext.Users.Find(loginBody.Username);
+            // If the user doesn't exist
             if (user == null)
             {
+                // Respond with Bad Request not to inform about user not existing
                 return BadRequest();
             }
 
+            // If the passwords match
             if (user.Password == loginBody.Password)
             {
+                // Respond with Ok
                 return Ok();
             }
 
+            // Else respond with Bad Request
             return BadRequest();
         }
     }

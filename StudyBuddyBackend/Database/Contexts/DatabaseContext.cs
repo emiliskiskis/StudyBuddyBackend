@@ -10,6 +10,7 @@ namespace StudyBuddyBackend.Database.Contexts
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<UserInChat> UsersInChats { get; set; }
         public DbSet<Chat> Chats { get; set; }
         public DbSet<Message> Messages { get; set; }
 
