@@ -8,8 +8,8 @@ namespace StudyBuddyBackend.Database.Entities
         [Key]
         public string GroupName { get; set; }
         // Initializing lists because empty sets in database create null values
-        public ICollection<UserInChat> Users { get; set; } = new List<UserInChat>();
-        public ICollection<Message> Messages { get; set; } = new List<Message>();
+        public virtual ICollection<UserInChat> Users { get; set; } = new List<UserInChat>();
+        public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
 
         public Chat()
         {

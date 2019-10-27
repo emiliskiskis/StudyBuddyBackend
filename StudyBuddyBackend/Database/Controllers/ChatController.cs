@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Models.Request;
+using StudyBuddyBackend.Database.Models.Response;
 
 namespace StudyBuddyBackend.Database.Controllers
 {
@@ -58,14 +60,14 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpGet("{groupName}")]
-        public ActionResult<IEnumerable<Message>> GetAllMessages(string groupName) 
+        public ActionResult<IEnumerable<ChatHistory>> GetAllMessages(string groupName) 
         {
-            var existingChat = _databaseContext.Chats.Find(groupName);
-            if (existingChat == null) 
+            var existingChat = _databaseContext.Chats.Include(c => c.Messages).ThenInclude(m => m.User).FirstOrDefault(c => c.GroupName == groupName);       
+            if (existingChat == default) 
             {
                 return NotFound();
             }
-            return existingChat.Messages.ToList();  
+            return existingChat.Messages.Select(m => new ChatHistory(m)).ToList();
         }
     }
 }
