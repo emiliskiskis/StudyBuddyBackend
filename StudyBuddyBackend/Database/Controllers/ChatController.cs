@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -54,6 +55,17 @@ namespace StudyBuddyBackend.Database.Controllers
             _databaseContext.Chats.Add(chat);
             _databaseContext.SaveChanges();
             return new {chat.GroupName};
+        }
+
+        [HttpGet("{groupName}")]
+        public ActionResult<IEnumerable<Message>> GetAllMessages(string groupName) 
+        {
+            var existingChat = _databaseContext.Chats.Find(groupName);
+            if (existingChat == null) 
+            {
+                return NotFound();
+            }
+            return existingChat.Messages.ToList();  
         }
     }
 }
