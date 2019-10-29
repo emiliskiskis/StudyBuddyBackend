@@ -22,7 +22,8 @@ namespace StudyBuddyBackend
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers().AddNewtonsoftJson();
-            services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(_connectionString));
+            services.AddDbContext<DatabaseContext>(options =>
+                options.UseNpgsql(_connectionString).UseLazyLoadingProxies());
             services.AddSignalR();
         }
 
@@ -44,6 +45,7 @@ namespace StudyBuddyBackend
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chat");
             });
         }
     }

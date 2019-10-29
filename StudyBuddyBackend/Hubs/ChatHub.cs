@@ -1,65 +1,37 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using StudyBuddyBackend.Database.Contexts;
+using StudyBuddyBackend.Database.Entities;
 
 namespace StudyBuddyBackend.Hubs
 {
-    public class ChatHub : Hub
+    public class ChatHub : Hub<HubClientInterface>
     {
-        private class ActiveUser
+        private readonly DatabaseContext _databaseContext;
+        private readonly ILogger _logger;
+
+        public ChatHub(DatabaseContext databaseContext, ILogger<ChatHub> logger)
         {
-            internal string Username { get; }
-            internal string ConnectionId { get; }
-            internal List<string> Groups { get; } = new List<string>();
-
-            internal ActiveUser(string username, string connectionId, string groupName)
-            {
-                Username = username;
-                ConnectionId = connectionId;
-                AddGroup(groupName);
-            }
-
-            internal void AddGroup(string groupName)
-            {
-                Groups.Add(groupName);
-            }
+            _databaseContext = databaseContext;
+            _logger = logger;
         }
-
-        private readonly List<ActiveUser> _userList = new List<ActiveUser>();
 
         public async Task Connect(string username, string groupName)
         {
-            ActiveUser activeUser;
-            if ((activeUser = _userList.Find(u => u.Username == username)) == null)
-            {
-                _userList.Add(new ActiveUser(username, Context.ConnectionId, groupName));
-            }
-            else
-            {
-                activeUser.AddGroup(groupName);
-            }
-
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
         }
 
-        public Task SendMessage(string groupName, string messageText)
+        public void SendMessage(string username, string groupName, string messageText)
         {
-            return Clients.Group(groupName).SendAsync("SignalRGet", messageText);
-        }
-
-        public override Task OnDisconnectedAsync(Exception exception)
-        {
-            return new Task(async () =>
-            {
-                var user = _userList.Find(u => u.ConnectionId == Context.ConnectionId);
-                foreach (var group in user.Groups)
-                {
-                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
-                }
-
-                _userList.Remove(user);
-            });
+            _logger.LogInformation($"{username} ({groupName}): {messageText}");
+            _databaseContext.Chats.Find(groupName).Messages
+                .Add(new Message(_databaseContext.Users.Find(username), messageText));
+            _databaseContext.SaveChanges();
+            Clients.Group(groupName).ReceiveMessage(username, groupName, messageText, new DateTime());
         }
     }
 }

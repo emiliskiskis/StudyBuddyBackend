@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
@@ -25,7 +24,7 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpPost]
-        public ActionResult<object> ConnectToUser(UserPair userPair)
+        public ActionResult<Group> ConnectToUser(UserPair userPair)
         {
             // Requester is the person that initiated the request
             User requester = _databaseContext.Users.Find(userPair.Username);
@@ -46,7 +45,7 @@ namespace StudyBuddyBackend.Database.Controllers
             if (existingChat != default)
             {
                 // If it does, return the existing chat's group name.
-                return new {existingChat.GroupName};
+                return new Group(existingChat);
             }
 
             // If a chat does not yet exist, create a new one, add both users to it and return the group name.
@@ -56,17 +55,18 @@ namespace StudyBuddyBackend.Database.Controllers
 
             _databaseContext.Chats.Add(chat);
             _databaseContext.SaveChanges();
-            return new {chat.GroupName};
+            return new Group(chat);
         }
 
         [HttpGet("{groupName}")]
-        public ActionResult<IEnumerable<ChatHistory>> GetAllMessages(string groupName) 
+        public ActionResult<IEnumerable<ChatHistory>> GetAllMessages(string groupName)
         {
-            var existingChat = _databaseContext.Chats.Include(c => c.Messages).ThenInclude(m => m.User).FirstOrDefault(c => c.GroupName == groupName);       
-            if (existingChat == default) 
+            var existingChat = _databaseContext.Chats.Find(groupName);
+            if (existingChat == null)
             {
                 return NotFound();
             }
+
             return existingChat.Messages.Select(m => new ChatHistory(m)).ToList();
         }
     }

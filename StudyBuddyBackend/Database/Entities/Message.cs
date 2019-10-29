@@ -9,7 +9,7 @@ namespace StudyBuddyBackend.Database.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public string Text { get; set; }
 
         // Auto-generated
