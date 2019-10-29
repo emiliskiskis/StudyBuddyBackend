@@ -31,7 +31,7 @@ namespace StudyBuddyBackend.Hubs
             _databaseContext.Chats.Find(groupName).Messages
                 .Add(new Message(_databaseContext.Users.Find(username), messageText));
             _databaseContext.SaveChanges();
-            await Clients.Group(groupName).ReceiveMessage(username, groupName, messageText, new DateTime());
+            await Clients.Group(groupName).ReceiveMessage(username, groupName, messageText, DateTime.Now);
         }
     }
 }
