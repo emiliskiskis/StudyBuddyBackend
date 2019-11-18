@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Models.Request;
 using StudyBuddyBackend.Database.Models.Response;
@@ -11,6 +13,7 @@ using StudyBuddyBackend.Database.Models.Response;
 namespace StudyBuddyBackend.Database.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/chat")]
     public class ChatController : ControllerBase
     {
@@ -26,6 +29,13 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost]
         public ActionResult<Group> ConnectToUser(UserPair userPair)
         {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (nameClaim != userPair.Username)
+            {
+                return Unauthorized();
+            }
+
             // Requester is the person that initiated the request
             User requester = _databaseContext.Users.Find(userPair.Username);
             // The connectee is the person that the requester wants to connect to
