@@ -10,8 +10,8 @@ using StudyBuddyBackend.Database;
 namespace StudyBuddyBackend.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20191019181126_NoLowerCase")]
-    partial class NoLowerCase
+    [Migration("20191117213042_GroupNameToId")]
+    partial class GroupNameToId
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,10 +23,11 @@ namespace StudyBuddyBackend.Migrations
 
             modelBuilder.Entity("StudyBuddyBackend.Database.Entities.Chat", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -40,8 +41,8 @@ namespace StudyBuddyBackend.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int?>("ChatId")
-                        .HasColumnType("integer");
+                    b.Property<string>("ChatId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("SentAt")
                         .ValueGeneratedOnAdd()
@@ -52,7 +53,6 @@ namespace StudyBuddyBackend.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("character varying");
 
                     b.HasKey("Id");
@@ -71,27 +71,22 @@ namespace StudyBuddyBackend.Migrations
                         .HasMaxLength(255);
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasColumnType("VARCHAR")
                         .HasMaxLength(255);
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasColumnType("VARCHAR")
                         .HasMaxLength(255);
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("VARCHAR")
                         .HasMaxLength(255);
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("VARCHAR")
                         .HasMaxLength(255);
 
                     b.Property<string>("Salt")
-                        .IsRequired()
                         .HasColumnType("VARCHAR")
                         .HasMaxLength(255);
 
@@ -100,15 +95,15 @@ namespace StudyBuddyBackend.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("StudyBuddyBackend.Database.Entities.UserChat", b =>
+            modelBuilder.Entity("StudyBuddyBackend.Database.Entities.UserInChat", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int?>("ChatId")
-                        .HasColumnType("integer");
+                    b.Property<string>("ChatId")
+                        .HasColumnType("text");
 
                     b.Property<string>("Username")
                         .HasColumnType("character varying");
@@ -119,7 +114,7 @@ namespace StudyBuddyBackend.Migrations
 
                     b.HasIndex("Username");
 
-                    b.ToTable("UserChat");
+                    b.ToTable("UsersInChats");
                 });
 
             modelBuilder.Entity("StudyBuddyBackend.Database.Entities.Message", b =>
@@ -130,18 +125,16 @@ namespace StudyBuddyBackend.Migrations
 
                     b.HasOne("StudyBuddyBackend.Database.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("Username")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Username");
                 });
 
-            modelBuilder.Entity("StudyBuddyBackend.Database.Entities.UserChat", b =>
+            modelBuilder.Entity("StudyBuddyBackend.Database.Entities.UserInChat", b =>
                 {
-                    b.HasOne("StudyBuddyBackend.Database.Entities.Chat", null)
+                    b.HasOne("StudyBuddyBackend.Database.Entities.Chat", "Chat")
                         .WithMany("Users")
                         .HasForeignKey("ChatId");
 
-                    b.HasOne("StudyBuddyBackend.Database.Entities.User", null)
+                    b.HasOne("StudyBuddyBackend.Database.Entities.User", "User")
                         .WithMany("Chats")
                         .HasForeignKey("Username");
                 });

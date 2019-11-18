@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using StudyBuddyBackend.Database.Contexts;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Models.Response;
 using StudyBuddyBackend.Database.Validators;
@@ -12,6 +13,7 @@ using StudyBuddyBackend.Database.Validators;
 namespace StudyBuddyBackend.Database.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/users")]
     public class UserController : ControllerBase
     {
@@ -26,6 +28,7 @@ namespace StudyBuddyBackend.Database.Controllers
             _userValidator = new UserValidator();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public ActionResult<User> CreateUser([FromBody] User user)
         {
@@ -35,9 +38,16 @@ namespace StudyBuddyBackend.Database.Controllers
             return _databaseContext.Users.Find(user.Username);
         }
 
+        [Authorize]
         [HttpGet("{username}")]
         public ActionResult<PasswordlessUser> ReadUser(string username)
         {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (nameClaim != username)
+            {
+                return Unauthorized();
+            }
+
             var user = _databaseContext.Users.Find(username);
             if (user == null)
             {
@@ -45,22 +55,6 @@ namespace StudyBuddyBackend.Database.Controllers
             }
 
             return new PasswordlessUser(user);
-        }
-
-        [HttpGet("{username}/salt")]
-        public ActionResult<SaltBody> ReadUserSalt(string username)
-        {
-            // Find the user
-            var user = _databaseContext.Users.Find(username);
-            // If the user doesn't exist
-            if (user == null)
-            {
-                // Respond with Bad Request not to inform about user not existing
-                return BadRequest();
-            }
-
-            // Else return the salt of user
-            return new SaltBody(user.Salt);
         }
 
         [HttpGet]
@@ -73,6 +67,12 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPut("{username}")]
         public ActionResult<object> UpdateUser(string username, [FromBody] User user)
         {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (nameClaim != username)
+            {
+                return Unauthorized();
+            }
+
             // If the username in body doesn't match the username in the URI
             if (username != user.Username)
             {
@@ -107,6 +107,12 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPatch("{username}")]
         public ActionResult<ChatlessUser> PatchUser(string username, [FromBody] JsonPatchDocument<User> patch)
         {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (nameClaim != username)
+            {
+                return Unauthorized();
+            }
+
             // Find existing user
             var user = _databaseContext.Users.Find(username);
             // If doesn't exist
@@ -159,6 +165,12 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpDelete("{username}")]
         public ActionResult<ChatlessUser> DeleteUser(string username)
         {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (nameClaim != username)
+            {
+                return Unauthorized();
+            }
+
             // Find the user
             var user = _databaseContext.Users.Find(username);
             // If doesn't exist
