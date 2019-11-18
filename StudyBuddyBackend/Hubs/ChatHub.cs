@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
-using StudyBuddyBackend.Database.Contexts;
+using StudyBuddyBackend.Database;
 using StudyBuddyBackend.Database.Entities;
 
 namespace StudyBuddyBackend.Hubs

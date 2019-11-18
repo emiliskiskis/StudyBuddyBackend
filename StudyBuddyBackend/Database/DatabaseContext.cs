@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudyBuddyBackend.Database.Entities;
 
-namespace StudyBuddyBackend.Database.Contexts
+namespace StudyBuddyBackend.Database
 {
     public class DatabaseContext : DbContext
     {
@@ -10,8 +10,8 @@ namespace StudyBuddyBackend.Database.Contexts
         }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<UserInChat> UsersInChats { get; set; }
         public DbSet<Chat> Chats { get; set; }
+        public DbSet<UserInChat> UsersInChats { get; set; }
         public DbSet<Message> Messages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
