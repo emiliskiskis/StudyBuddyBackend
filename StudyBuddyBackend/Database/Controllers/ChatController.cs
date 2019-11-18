@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Models.Request;
 using StudyBuddyBackend.Database.Models.Response;
+using Chat = StudyBuddyBackend.Database.Models.Response.Chat;
 
 namespace StudyBuddyBackend.Database.Controllers
 {
@@ -27,7 +28,7 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Group> ConnectToUser(UserPair userPair)
+        public ActionResult<Chat> ConnectToUser(UserPair userPair)
         {
             var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
@@ -54,24 +55,52 @@ namespace StudyBuddyBackend.Database.Controllers
                                                                               userPair.ConnectTo));
             if (existingChat != default)
             {
-                // If it does, return the existing chat's group name.
-                return new Group(existingChat);
+                // If it does, return the existing chat's id.
+                return new Chat(existingChat);
             }
 
-            // If a chat does not yet exist, create a new one, add both users to it and return the group name.
-            Chat chat = new Chat(Guid.NewGuid().ToString());
+            // If a chat does not yet exist, create a new one, add both users to it and return the chat's id.
+            Entities.Chat chat = new Entities.Chat(Guid.NewGuid().ToString());
             chat.Users.Add(new UserInChat(requester, chat));
             chat.Users.Add(new UserInChat(connectee, chat));
 
             _databaseContext.Chats.Add(chat);
             _databaseContext.SaveChanges();
-            return new Group(chat);
+            return new Chat(chat);
         }
 
-        [HttpGet("{groupName}")]
-        public ActionResult<IEnumerable<ChatHistory>> GetAllMessages(string groupName)
+        [HttpGet("{username}")]
+        public ActionResult<IEnumerable<Chat>> GetAllChats(string username)
         {
-            var existingChat = _databaseContext.Chats.Find(groupName);
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (nameClaim != username)
+            {
+                return Unauthorized();
+            }
+
+            return _databaseContext.Users.Include(u => u.Chats)
+                .ThenInclude(c => c.Chat)
+                .FirstOrDefault(u => u.Username == username)?.Chats
+                .Select(chat => new Chat(chat.Chat)).ToList();
+        }
+
+        [HttpGet("{id}/messages")]
+        public ActionResult<IEnumerable<ChatHistory>> GetAllMessages(string id)
+        {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            // If requester is not part of the group
+            if (_databaseContext.UsersInChats.Include(chat => chat.Chat)
+                .Where(chat => chat.Chat.Id == id).Include(chat => chat.User)
+                .Select(chat => chat.User.Username).All(username => username != nameClaim))
+            {
+                return Unauthorized();
+            }
+
+            var existingChat = _databaseContext.Chats
+                .Include(c => c.Messages)
+                .ThenInclude(message => message.User)
+                .FirstOrDefault(c => c.Id == id);
             if (existingChat == null)
             {
                 return NotFound();

@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +30,8 @@ namespace StudyBuddyBackend
         {
             services.AddControllers().AddNewtonsoftJson();
             services.AddDbContext<DatabaseContext>(options =>
-                options.UseNpgsql(_connectionString).UseLazyLoadingProxies());
+                options.UseNpgsql(_connectionString));
+
             services.AddSignalR();
 
             // configure strongly typed settings objects

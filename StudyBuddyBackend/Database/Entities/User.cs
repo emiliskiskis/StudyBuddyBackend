@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -32,6 +33,7 @@ namespace StudyBuddyBackend.Database.Entities
         public string Email { get; set; }
 
         // Initializing lists because empty sets in database create null values
-        public virtual ICollection<UserInChat> Chats { get; set; } = new List<UserInChat>();
+        [ReadOnly(true)]
+        public ICollection<UserInChat> Chats { get; set; } = new List<UserInChat>();
     }
 }

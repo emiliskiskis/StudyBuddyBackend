@@ -6,19 +6,20 @@ namespace StudyBuddyBackend.Database.Entities
     public class Chat
     {
         [Key]
-        public string GroupName { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
         // Initializing lists because empty sets in database create null values
-        public virtual ICollection<UserInChat> Users { get; set; } = new List<UserInChat>();
-        public virtual ICollection<Message> Messages { get; set; } = new List<Message>();
+        public ICollection<UserInChat> Users { get; set; } = new List<UserInChat>();
+        public ICollection<Message> Messages { get; set; } = new List<Message>();
 
         public Chat()
         {
 
         }
 
-        public Chat(string groupName)
+        public Chat(string id)
         {
-            GroupName = groupName;
+            Id = id;
         }
     }
 }
