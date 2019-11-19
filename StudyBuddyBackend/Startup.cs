@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -39,8 +39,8 @@ namespace StudyBuddyBackend
             services.Configure<JwtToken>(appSettingsSection);
 
             // configure jwt authentication
-            var appSettings = appSettingsSection.Get<JwtToken>();
-            var key = Encoding.ASCII.GetBytes(appSettings.Token);
+            var jwtToken = appSettingsSection.Get<JwtToken>();
+            var key = Encoding.ASCII.GetBytes(jwtToken.Token);
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -78,7 +78,7 @@ namespace StudyBuddyBackend
             app.UseAuthorization();
 
             app.UseCors(policyBuilder =>
-                policyBuilder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
+                policyBuilder.AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowed(_ => true).AllowCredentials()
             );
 
             app.UseEndpoints(endpoints =>

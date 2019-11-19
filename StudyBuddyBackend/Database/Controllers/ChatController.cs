@@ -47,7 +47,7 @@ namespace StudyBuddyBackend.Database.Controllers
             // If the person trying to connect to is not found, it's a Not Found
             if (connectee == null) return NotFound();
 
-            // Check if a one-on-one chat already exists, since those are unique. 
+            // Check if a one-on-one chat already exists, since those are unique.
             var existingChat = _databaseContext.Chats.FirstOrDefault(c => c.Users.Count == 2 && c.Users.All(userChat =>
                                                                               userChat.User.Username ==
                                                                               userPair.Username ||
@@ -56,7 +56,7 @@ namespace StudyBuddyBackend.Database.Controllers
             if (existingChat != default)
             {
                 // If it does, return the existing chat's id.
-                return new Chat(existingChat);
+                return new Chat(existingChat, GetAllUsers(existingChat.Id).Value);
             }
 
             // If a chat does not yet exist, create a new one, add both users to it and return the chat's id.
@@ -66,7 +66,7 @@ namespace StudyBuddyBackend.Database.Controllers
 
             _databaseContext.Chats.Add(chat);
             _databaseContext.SaveChanges();
-            return new Chat(chat);
+            return new Chat(chat, GetAllUsers(chat.Id).Value);
         }
 
         [HttpGet("{username}")]
@@ -78,10 +78,12 @@ namespace StudyBuddyBackend.Database.Controllers
                 return Unauthorized();
             }
 
-            return _databaseContext.Users.Include(u => u.Chats)
+            return _databaseContext.Users
+                .Include(u => u.Chats)
                 .ThenInclude(c => c.Chat)
                 .FirstOrDefault(u => u.Username == username)?.Chats
-                .Select(chat => new Chat(chat.Chat)).ToList();
+                .Select(chat => new Chat(chat.Chat, GetAllUsers(chat.Chat.Id).Value))
+                .ToList();
         }
 
         [HttpGet("{id}/messages")]
@@ -107,6 +109,27 @@ namespace StudyBuddyBackend.Database.Controllers
             }
 
             return existingChat.Messages.Select(m => new ChatHistory(m)).ToList();
+        }
+
+        [HttpGet("{id}/users")]
+        public ActionResult<IEnumerable<PublicUser>> GetAllUsers(string id)
+        {
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            // If requester is not part of the group
+            if (_databaseContext.UsersInChats.Include(chat => chat.Chat)
+                .Where(chat => chat.Chat.Id == id).Include(chat => chat.User)
+                .Select(chat => chat.User.Username).All(username => username != nameClaim))
+            {
+                return Unauthorized();
+            }
+
+            return _databaseContext.UsersInChats
+                .Include(chat => chat.Chat)
+                .Where(chat => chat.Chat.Id == id)
+                .Include(chat => chat.User)
+                .Select(chat => new PublicUser(chat.User))
+                .ToList();
         }
     }
 }
