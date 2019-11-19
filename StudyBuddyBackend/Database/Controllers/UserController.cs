@@ -32,6 +32,8 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost]
         public ActionResult<User> CreateUser([FromBody] User user)
         {
+            if (UserExists(user.Username)) return Conflict();
+
             // Add the user and return the created user
             _databaseContext.Users.Add(user);
             _databaseContext.SaveChanges();
