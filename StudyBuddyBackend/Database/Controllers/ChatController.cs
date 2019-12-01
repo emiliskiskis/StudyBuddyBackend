@@ -56,7 +56,7 @@ namespace StudyBuddyBackend.Database.Controllers
             if (existingChat != default)
             {
                 // If it does, return the existing chat's id.
-                return new Chat(existingChat, GetAllUsers(existingChat.Id).Value);
+                return default; //new Chat(existingChat, GetAllUsers(existingChat.Id).Value);
             }
 
             // If a chat does not yet exist, create a new one, add both users to it and return the chat's id.
@@ -66,7 +66,7 @@ namespace StudyBuddyBackend.Database.Controllers
 
             _databaseContext.Chats.Add(chat);
             _databaseContext.SaveChanges();
-            return new Chat(chat, GetAllUsers(chat.Id).Value);
+            return default; // new Chat(chat, GetAllUsers(chat.Id).Value);
         }
 
         [HttpGet("{username}")]
@@ -80,9 +80,17 @@ namespace StudyBuddyBackend.Database.Controllers
 
             return _databaseContext.Users
                 .Include(u => u.Chats)
-                .ThenInclude(c => c.Chat)
+                .ThenInclude(uc => uc.Chat)
+                .ThenInclude(c => c.Users)
+                .ThenInclude(uc => uc.User)
+                .Include(u => u.Chats)
+                .ThenInclude(uc => uc.Chat)
+                .ThenInclude(c => c.Messages)
+                .ThenInclude(m => m.User)
                 .FirstOrDefault(u => u.Username == username)?.Chats
-                .Select(chat => new Chat(chat.Chat, GetAllUsers(chat.Chat.Id).Value))
+                .Select(uc => new Chat(uc.Chat,
+                    uc.Chat.Messages.LastOrDefault() != default ? new ChatHistory(uc.Chat.Messages.Last()) : default,
+                    uc.Chat.Users.Select(c => new PublicUser(c.User))))
                 .ToList();
         }
 

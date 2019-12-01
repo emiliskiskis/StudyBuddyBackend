@@ -5,9 +5,8 @@ namespace StudyBuddyBackend.Database.Entities
 {
     public class Message
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
+        [Column(TypeName = "VARCHAR(36)")]
+        public string Id { get; set; }
         public User User { get; set; }
         public string Text { get; set; }
 
@@ -19,8 +18,9 @@ namespace StudyBuddyBackend.Database.Entities
             
         }
 
-        public Message(User user, string text)
+        public Message(string id, User user, string text)
         {
+            Id = id;
             User = user;
             Text = text;
         }
