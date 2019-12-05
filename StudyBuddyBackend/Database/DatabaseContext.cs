@@ -13,7 +13,7 @@ namespace StudyBuddyBackend.Database
         public DbSet<Chat> Chats { get; set; }
         public DbSet<UserInChat> UsersInChats { get; set; }
         public DbSet<Message> Messages { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Feedback> Feedback { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

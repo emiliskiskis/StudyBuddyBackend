@@ -7,7 +7,7 @@ namespace StudyBuddyBackend.Database.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public User Author { get; set; }
-        public User Reviewee { get; set; }
+        public User Reviewer { get; set; }
         public string Comment { get; set; }
     }
 }
