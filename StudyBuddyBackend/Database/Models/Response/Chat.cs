@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace StudyBuddyBackend.Database.Models.Response
 {
@@ -8,11 +9,12 @@ namespace StudyBuddyBackend.Database.Models.Response
         public ChatHistory LastMessage { get; }
         public IEnumerable<PublicUser> Users { get; }
 
-        public Chat(Entities.Chat chat, ChatHistory lastMessage, IEnumerable<PublicUser> users)
+        public Chat(Entities.Chat chat)
         {
             Id = chat.Id;
-            LastMessage = lastMessage;
-            Users = users;
+            var lastMessage = chat.Messages.OrderBy(m => m.SentAt).LastOrDefault();
+            LastMessage = lastMessage != default ? new ChatHistory(lastMessage) : default;
+            Users = chat.Users.Select(u => new PublicUser(u.User));
         }
     }
 }

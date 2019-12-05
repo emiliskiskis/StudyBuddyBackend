@@ -66,7 +66,49 @@ namespace StudyBuddyBackend.Database.Controllers
 
             _databaseContext.Chats.Add(chat);
             _databaseContext.SaveChanges();
-            return default; // new Chat(chat, GetAllUsers(chat.Id).Value);
+
+            var createdChat = _databaseContext.Chats.Find(chat.Id);
+            return new Chat(createdChat);
+        }
+
+        [HttpPost("{chatId}")]
+        public ActionResult<Chat> AddUserToChat(string chatId, UserUsername userUsername)
+        {
+            var chat = _databaseContext.Chats.Include(c => c.Users).ThenInclude(uc => uc.User)
+                .FirstOrDefault(c => c.Id == chatId);
+            if (chat == default)
+            {
+                return NotFound(new {ChatId = "Chat not found."});
+            }
+
+            var user = _databaseContext.Users.Find(userUsername.Username);
+            if (user == null)
+            {
+                return NotFound(new {Username = "User not found."});
+            }
+
+            if (chat.Users.FirstOrDefault(c => c.User.Username == userUsername.Username) != default)
+            {
+                return Conflict(new {Username = "User already exists in chat."});
+            }
+
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (chat.Users.FirstOrDefault(u => u.User.Username == nameClaim) == default)
+            {
+                return Unauthorized();
+            }
+            
+            chat.Users.Add(new UserInChat(user, chat));
+            _databaseContext.SaveChanges();
+            var updatedChat = _databaseContext.Chats
+                .Include(c => c.Messages)
+                .ThenInclude(m => m.User)
+                .Include(c => c.Users)
+                .ThenInclude(uc => uc.User)
+                .First(c => c.Id == chatId);
+
+            return new Chat(updatedChat);
         }
 
         [HttpGet("{username}")]
@@ -88,9 +130,7 @@ namespace StudyBuddyBackend.Database.Controllers
                 .ThenInclude(c => c.Messages)
                 .ThenInclude(m => m.User)
                 .FirstOrDefault(u => u.Username == username)?.Chats
-                .Select(uc => new Chat(uc.Chat,
-                    uc.Chat.Messages.LastOrDefault() != default ? new ChatHistory(uc.Chat.Messages.Last()) : default,
-                    uc.Chat.Users.Select(c => new PublicUser(c.User))))
+                .Select(uc => new Chat(uc.Chat))
                 .ToList();
         }
 
@@ -116,7 +156,7 @@ namespace StudyBuddyBackend.Database.Controllers
                 return NotFound();
             }
 
-            return existingChat.Messages.Select(m => new ChatHistory(m)).ToList();
+            return existingChat.Messages.OrderBy(m => m.SentAt).Select(m => new ChatHistory(m)).ToList();
         }
 
         [HttpGet("{id}/users")]
