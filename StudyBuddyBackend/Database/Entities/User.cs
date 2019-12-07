@@ -35,5 +35,7 @@ namespace StudyBuddyBackend.Database.Entities
         // Initializing lists because empty sets in database create null values
         [ReadOnly(true)]
         public ICollection<UserInChat> Chats { get; set; } = new List<UserInChat>();
+        [ReadOnly(true)]
+        public ICollection<UserSubject> Subjects { get; set; } = new List<UserSubject>();
     }
 }

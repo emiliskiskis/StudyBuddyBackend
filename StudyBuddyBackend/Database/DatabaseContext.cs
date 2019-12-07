@@ -15,12 +15,15 @@ namespace StudyBuddyBackend.Database
         public DbSet<UserInChat> UsersInChats { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Feedback> Feedback { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
+        public DbSet<UserSubject> UserSubjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Message>().HasKey("Username", "ChatId", "SentAt");
             modelBuilder.Entity<Message>().Property(m => m.SentAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<UserInChat>().HasKey("ChatId", "Username");
+            modelBuilder.Entity<UserSubject>().HasKey("SubjectName", "Username");
             modelBuilder.Entity<Feedback>().HasKey("AuthorUsername", "ReviewerUsername");
         }
     }
