@@ -74,8 +74,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost("{chatId}")]
         public ActionResult<Chat> AddUserToChat(string chatId, UserUsername userUsername)
         {
-            var chat = _databaseContext.Chats.Include(c => c.Users).ThenInclude(uc => uc.User)
-                .FirstOrDefault(c => c.Id == chatId);
+            var chat = _databaseContext.Chats.Include(c => c.Users).FirstOrDefault(c => c.Id == chatId);
             if (chat == default)
             {
                 return NotFound(new {ChatId = "Chat not found."});
@@ -87,7 +86,7 @@ namespace StudyBuddyBackend.Database.Controllers
                 return NotFound(new {Username = "User not found."});
             }
 
-            if (chat.Users.FirstOrDefault(c => c.User.Username == userUsername.Username) != default)
+            if (_databaseContext.UsersInChats.Find(chatId, userUsername.Username) != null)
             {
                 return Conflict(new {Username = "User already exists in chat."});
             }
@@ -98,7 +97,7 @@ namespace StudyBuddyBackend.Database.Controllers
             {
                 return Unauthorized();
             }
-            
+
             chat.Users.Add(new UserInChat(user, chat));
             _databaseContext.SaveChanges();
             var updatedChat = _databaseContext.Chats
@@ -140,9 +139,7 @@ namespace StudyBuddyBackend.Database.Controllers
             var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             // If requester is not part of the group
-            if (_databaseContext.UsersInChats.Include(chat => chat.Chat)
-                .Where(chat => chat.Chat.Id == id).Include(chat => chat.User)
-                .Select(chat => chat.User.Username).All(username => username != nameClaim))
+            if (_databaseContext.UsersInChats.Find(id, nameClaim) == null)
             {
                 return Unauthorized();
             }
@@ -151,7 +148,7 @@ namespace StudyBuddyBackend.Database.Controllers
                 .Include(c => c.Messages)
                 .ThenInclude(message => message.User)
                 .FirstOrDefault(c => c.Id == id);
-            if (existingChat == null)
+            if (existingChat == default)
             {
                 return NotFound();
             }
@@ -165,9 +162,7 @@ namespace StudyBuddyBackend.Database.Controllers
             var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             // If requester is not part of the group
-            if (_databaseContext.UsersInChats.Include(chat => chat.Chat)
-                .Where(chat => chat.Chat.Id == id).Include(chat => chat.User)
-                .Select(chat => chat.User.Username).All(username => username != nameClaim))
+            if (_databaseContext.UsersInChats.Find(id, nameClaim) == null)
             {
                 return Unauthorized();
             }
@@ -178,6 +173,12 @@ namespace StudyBuddyBackend.Database.Controllers
                 .Include(chat => chat.User)
                 .Select(chat => new PublicUser(chat.User))
                 .ToList();
+        }
+
+        [HttpPost("{id}/messages")]
+        public ActionResult<Message> CreateMessage(string id, Message message)
+        {
+            return message;
         }
     }
 }

@@ -5,9 +5,10 @@ namespace StudyBuddyBackend.Database.Entities
     // Intermediary table to create a many-to-many relationship of users to chats
     public class UserInChat
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
-
+        [ForeignKey("Chat")]
+        public string ChatId { get; set; }
+        [ForeignKey("User")]
+        public string Username { get; set; }
         public Chat Chat { get; set; }
         public User User { get; set; }
 

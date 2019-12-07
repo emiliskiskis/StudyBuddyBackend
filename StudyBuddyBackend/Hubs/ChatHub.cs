@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database;
 using StudyBuddyBackend.Database.Entities;
 
@@ -12,57 +12,49 @@ namespace StudyBuddyBackend.Hubs
     public class ChatHub : Hub<IHubClient>
     {
         private readonly DatabaseContext _databaseContext;
+        private readonly ILogger _logger;
 
-        private class ActiveUser
+        private readonly ActiveUserService _activeUserService;
+
+        public ChatHub(DatabaseContext databaseContext, ILogger<ChatHub> logger, ActiveUserService activeUserService)
         {
-            internal string ConnectionId { get; }
-            internal string Username { get; }
-
-            internal ActiveUser(string connectionId, string username)
-            {
-                ConnectionId = connectionId;
-                Username = username;
-            }
-        }
-
-        private readonly ICollection<ActiveUser> _activeUsers = new List<ActiveUser>();
-
-        public ChatHub(DatabaseContext databaseContext)
-        {
+            _activeUserService = activeUserService;
             _databaseContext = databaseContext;
+            _logger = logger;
         }
 
         public async Task Connect(string username)
         {
-            var user = _databaseContext.Users.Include(u => u.Chats).ThenInclude(chat => chat.Chat)
+            var user = _databaseContext.Users
+                .Include(u => u.Chats)
                 .FirstOrDefault(u => u.Username == username);
-            if (user == null) return;
-            foreach (var chat in user.Chats)
+            if (user == default) return;
+            foreach (var userInChat in user.Chats)
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, chat.Chat.Id);
+                _logger.LogInformation(userInChat.ChatId);
+                await Groups.AddToGroupAsync(Context.ConnectionId, userInChat.ChatId);
             }
 
-            _activeUsers.Add(new ActiveUser(Context.ConnectionId, username));
+            _activeUserService.ActiveUsers.Add(new ActiveUser(Context.ConnectionId, username));
         }
 
         public async Task ConnectOther(string username, string chatId)
         {
-            var activeUser = _activeUsers.FirstOrDefault(user => user.Username == username);
+            var activeUser = _activeUserService.ActiveUsers.FirstOrDefault(user => user.Username == username);
             if (activeUser == default) return;
 
-            var userChat = _databaseContext.UsersInChats.Include(chat => chat.User).Include(chat => chat.Chat)
-                .FirstOrDefault(u => u.User.Username == username && u.Chat.Id == chatId);
-            if (userChat == default) return;
+            var userChat = _databaseContext.UsersInChats.Find(chatId, username);
+            if (userChat == null) return;
 
             await Clients.User(activeUser.ConnectionId).ReceiveChat(chatId);
         }
 
-        public async Task SendMessage(string username, string chatId, string messageId, string messageText)
+        public async Task SendMessage(string username, string chatId, string text, int tempId)
         {
-            _databaseContext.Chats.Find(chatId).Messages
-                .Add(new Message(messageId, _databaseContext.Users.Find(username), messageText));
+            _databaseContext.Chats.Find(chatId).Messages.Add(new Message(username, text));
             _databaseContext.SaveChanges();
-            await Clients.Group(chatId).ReceiveMessage(username, chatId, messageId, messageText, DateTime.Now);
+            await Clients.OthersInGroup(chatId).ReceiveMessage(username, chatId, text, DateTime.Now);
+            await Clients.Caller.MessageSuccess(chatId, tempId);
         }
     }
 }
