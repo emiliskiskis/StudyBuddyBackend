@@ -11,5 +11,6 @@ namespace StudyBuddyBackend.Database.Entities
         public User Author { get; set; }
         public User Reviewer { get; set; }
         public string Comment { get; set; }
+        public int Rating { get; set; }
     }
 }
