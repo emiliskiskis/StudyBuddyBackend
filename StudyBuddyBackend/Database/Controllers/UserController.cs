@@ -23,11 +23,11 @@ namespace StudyBuddyBackend.Database.Controllers
     [Route("api/users")]
     public class UserController : ControllerBase
     {
-        private readonly DatabaseContext _databaseContext;
+        private readonly IDatabaseContext _databaseContext;
         private readonly ILogger _logger;
         private readonly UserValidator _userValidator;
 
-        public UserController(DatabaseContext databaseContext, ILogger<UserController> logger)
+        public UserController(IDatabaseContext databaseContext, ILogger<UserController> logger)
         {
             _databaseContext = databaseContext;
             _logger = logger;

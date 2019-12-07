@@ -18,10 +18,10 @@ namespace StudyBuddyBackend.Database.Controllers
     [Route("api/chat")]
     public class ChatController : ControllerBase
     {
-        private readonly DatabaseContext _databaseContext;
+        private readonly IDatabaseContext _databaseContext;
         private readonly ILogger _logger;
 
-        public ChatController(DatabaseContext databaseContext, ILogger<UserController> logger)
+        public ChatController(IDatabaseContext databaseContext, ILogger<UserController> logger)
         {
             _databaseContext = databaseContext;
             _logger = logger;

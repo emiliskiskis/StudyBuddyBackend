@@ -10,11 +10,11 @@ namespace StudyBuddyBackend.Database.Controllers
     [ApiController]
     public class LoginController : ControllerBase
     {
-        private readonly DatabaseContext _databaseContext;
+        private readonly IDatabaseContext _databaseContext;
         private readonly ILogger _logger;
         private readonly IUserService _userService;
 
-        public LoginController(DatabaseContext databaseContext, ILogger<LoginController> logger,
+        public LoginController(IDatabaseContext databaseContext, ILogger<LoginController> logger,
             IUserService userService)
         {
             _databaseContext = databaseContext;

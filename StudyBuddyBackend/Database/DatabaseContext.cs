@@ -3,12 +3,12 @@ using StudyBuddyBackend.Database.Entities;
 
 namespace StudyBuddyBackend.Database
 {
-    public class DatabaseContext : DbContext
+    public class DatabaseContext : DbContext, IDatabaseContext
     {
         public DatabaseContext(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
         {
         }
-
+     
         public DbSet<User> Users { get; set; }
         public DbSet<ProfilePicture> ProfilePictures { get; set; }
         public DbSet<Chat> Chats { get; set; }

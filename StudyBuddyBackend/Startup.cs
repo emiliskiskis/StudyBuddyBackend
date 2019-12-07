@@ -29,7 +29,7 @@ namespace StudyBuddyBackend
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers().AddNewtonsoftJson();
-            services.AddDbContext<DatabaseContext>(options =>
+            services.AddDbContext<IDatabaseContext, DatabaseContext>(options =>
                 options.UseNpgsql(_connectionString));
 
             services.AddSignalR();

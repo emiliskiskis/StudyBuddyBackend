@@ -11,12 +11,12 @@ namespace StudyBuddyBackend.Hubs
 {
     public class ChatHub : Hub<IHubClient>
     {
-        private readonly DatabaseContext _databaseContext;
+        private readonly IDatabaseContext _databaseContext;
         private readonly ILogger _logger;
 
         private readonly ActiveUserService _activeUserService;
 
-        public ChatHub(DatabaseContext databaseContext, ILogger<ChatHub> logger, ActiveUserService activeUserService)
+        public ChatHub(IDatabaseContext databaseContext, ILogger<ChatHub> logger, ActiveUserService activeUserService)
         {
             _activeUserService = activeUserService;
             _databaseContext = databaseContext;
