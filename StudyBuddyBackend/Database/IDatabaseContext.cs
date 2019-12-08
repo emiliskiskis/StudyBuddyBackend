@@ -12,7 +12,8 @@ namespace StudyBuddyBackend.Database
         DbSet<Message> Messages { get; set; }
         DbSet<Feedback> Feedback { get; set; }
         DbSet<Subject> Subjects { get; set; }
-        DbSet<UserSubject> UserSubjects { get; set; }
+        DbSet<TeacherSubject> TeacherSubjects { get; set; }
+        DbSet<TeacherInfo> TeacherInfo { get; set; }
         int SaveChanges();
     }
 }
