@@ -19,11 +19,10 @@ namespace StudyBuddyBackend.Database.Entities
         public User User { get; set; }
 
         [ReadOnly(true)]
-        public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+        public ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 
         public TeacherInfo()
         {
-
         }
 
         public TeacherInfo(string username)
