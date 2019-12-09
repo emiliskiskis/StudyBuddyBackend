@@ -332,5 +332,22 @@ namespace StudyBuddyBackend.Database.Controllers
             // Does any user with specified username exist?
             return _databaseContext.Users.Any(u => u.Username == username);
         }
+
+        [HttpPost("{username}/teacher")]
+        public ActionResult<User> MakeTeacher(string username)
+        {
+            if (TeacherExists(username)) return Conflict();
+
+            // Add the teacher and return the created teacher
+            _databaseContext.TeacherInfo.Add(new TeacherInfo(username));
+            _databaseContext.SaveChanges();
+            return Ok();
+        }
+
+        private bool TeacherExists(string username)
+        {
+            // Does any teacher with specified username exist?
+            return _databaseContext.TeacherInfo.Any(u => u.Username == username);
+        }
     }
 }
