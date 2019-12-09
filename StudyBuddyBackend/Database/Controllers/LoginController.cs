@@ -12,14 +12,14 @@ namespace StudyBuddyBackend.Database.Controllers
     {
         private readonly IDatabaseContext _databaseContext;
         private readonly ILogger _logger;
-        private readonly IUserService _userService;
+        private readonly IIdentityService _identityService;
 
         public LoginController(IDatabaseContext databaseContext, ILogger<LoginController> logger,
-            IUserService userService)
+            IIdentityService identityService)
         {
             _databaseContext = databaseContext;
             _logger = logger;
-            _userService = userService;
+            _identityService = identityService;
         }
 
         [HttpPost("login")]
@@ -31,7 +31,7 @@ namespace StudyBuddyBackend.Database.Controllers
             if (user == null || user.Password != loginBody.Password)
                 return BadRequest();
 
-            var token = _userService.Authenticate(user.Username);
+            var token = _identityService.Authenticate(user.Username);
             if (token != null)
             {
                 return Ok(new {token});

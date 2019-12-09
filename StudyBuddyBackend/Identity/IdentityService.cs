@@ -1,18 +1,20 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using StudyBuddyBackend.Helpers;
 
 namespace StudyBuddyBackend.Identity
 {
-    public class UserService : IUserService
+    public class IdentityService : IIdentityService
     {
         private readonly JwtToken _jwtToken;
 
-        public UserService(IOptions<JwtToken> options)
+        public IdentityService(IOptions<JwtToken> options)
         {
             _jwtToken = options.Value;
         }
@@ -32,6 +34,11 @@ namespace StudyBuddyBackend.Identity
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public string GetUsername(HttpContext context)
+        {
+            return context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         }
     }
 }

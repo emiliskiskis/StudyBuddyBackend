@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Models.Response;
 using StudyBuddyBackend.Database.Validators;
+using StudyBuddyBackend.Identity;
 using ProfilePicture = StudyBuddyBackend.Database.Models.Request.ProfilePicture;
 
 namespace StudyBuddyBackend.Database.Controllers
@@ -24,12 +25,14 @@ namespace StudyBuddyBackend.Database.Controllers
     public class UserController : ControllerBase
     {
         private readonly IDatabaseContext _databaseContext;
+        private readonly IIdentityService _identityService;
         private readonly ILogger _logger;
         private readonly UserValidator _userValidator;
 
-        public UserController(IDatabaseContext databaseContext, ILogger<UserController> logger)
+        public UserController(IDatabaseContext databaseContext, IIdentityService identityService, ILogger<UserController> logger)
         {
             _databaseContext = databaseContext;
+            _identityService = identityService;
             _logger = logger;
             _userValidator = new UserValidator();
         }
@@ -50,7 +53,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpGet("{username}")]
         public ActionResult<PasswordlessUser> ReadUser(string username)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();
@@ -75,7 +78,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPut("{username}")]
         public ActionResult<object> UpdateUser(string username, [FromBody] User user)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();
@@ -115,7 +118,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPatch("{username}")]
         public ActionResult<ChatlessUser> PatchUser(string username, [FromBody] JsonPatchDocument<User> patch)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();
@@ -173,7 +176,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpDelete("{username}")]
         public ActionResult<ChatlessUser> DeleteUser(string username)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();
@@ -199,7 +202,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost("{username}/picture")]
         public ActionResult<ProfilePicture> AddProfilePicture(string username, ProfilePicture profilePicture)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();
@@ -306,7 +309,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpDelete("{username}/picture")]
         public IActionResult DeleteProfilePicture(string username)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using StudyBuddyBackend.Database.Entities;
 using StudyBuddyBackend.Database.Models.Request;
 using StudyBuddyBackend.Database.Models.Response;
+using StudyBuddyBackend.Identity;
 using Chat = StudyBuddyBackend.Database.Models.Response.Chat;
 
 namespace StudyBuddyBackend.Database.Controllers
@@ -19,18 +20,20 @@ namespace StudyBuddyBackend.Database.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IDatabaseContext _databaseContext;
+        private readonly IIdentityService _identityService;
         private readonly ILogger _logger;
 
-        public ChatController(IDatabaseContext databaseContext, ILogger<UserController> logger)
+        public ChatController(IDatabaseContext databaseContext, IIdentityService identityService, ILogger<UserController> logger)
         {
             _databaseContext = databaseContext;
+            _identityService = identityService;
             _logger = logger;
         }
 
         [HttpPost]
         public ActionResult<Chat> ConnectToUser(UserPair userPair)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
 
             if (nameClaim != userPair.Username)
             {
@@ -91,7 +94,7 @@ namespace StudyBuddyBackend.Database.Controllers
                 return Conflict(new {Username = "User already exists in chat."});
             }
 
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
 
             if (chat.Users.FirstOrDefault(u => u.User.Username == nameClaim) == default)
             {
@@ -113,7 +116,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpGet("{username}")]
         public ActionResult<IEnumerable<Chat>> GetAllChats(string username)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
             if (nameClaim != username)
             {
                 return Unauthorized();
@@ -136,7 +139,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpGet("{id}/messages")]
         public ActionResult<IEnumerable<ChatHistory>> GetAllMessages(string id)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
 
             // If requester is not part of the group
             if (_databaseContext.UsersInChats.Find(id, nameClaim) == null)
@@ -159,7 +162,7 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpGet("{id}/users")]
         public ActionResult<IEnumerable<PublicUser>> GetAllUsers(string id)
         {
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var nameClaim = _identityService.GetUsername(HttpContext);
 
             // If requester is not part of the group
             if (_databaseContext.UsersInChats.Find(id, nameClaim) == null)
@@ -173,12 +176,6 @@ namespace StudyBuddyBackend.Database.Controllers
                 .Include(chat => chat.User)
                 .Select(chat => new PublicUser(chat.User))
                 .ToList();
-        }
-
-        [HttpPost("{id}/messages")]
-        public ActionResult<Message> CreateMessage(string id, Message message)
-        {
-            return message;
         }
     }
 }
