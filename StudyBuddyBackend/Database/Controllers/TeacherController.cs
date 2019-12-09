@@ -19,7 +19,7 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpPost("{username}")]
-        public ActionResult<User> MakeTeacher(string username)
+        public ActionResult MakeTeacher(string username)
         {
             if (TeacherExists(username)) return Conflict();
 
@@ -45,6 +45,21 @@ namespace StudyBuddyBackend.Database.Controllers
                                             .Take(size)
                                             .Select(subject => new { subject.Name })
                                             .ToList();
+        }
+
+        [HttpPost("{username}/subjects")]
+        public IActionResult AddSubjectToTeacher(Subject subject, string username)
+        {
+            TeacherInfo teacher = _databaseContext.TeacherInfo.Find(username);
+
+            if (teacher == null)
+            {
+                return NotFound();
+            }
+
+            _databaseContext.TeacherSubjects.Add(new TeacherSubject(teacher, subject));
+            _databaseContext.SaveChanges();
+            return Ok();
         }
     }
 }

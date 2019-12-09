@@ -8,7 +8,7 @@ namespace StudyBuddyBackend.Database
         public DatabaseContext(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
         {
         }
-     
+
         public DbSet<User> Users { get; set; }
         public DbSet<ProfilePicture> ProfilePictures { get; set; }
         public DbSet<Chat> Chats { get; set; }
@@ -25,7 +25,7 @@ namespace StudyBuddyBackend.Database
             modelBuilder.Entity<Message>().Property(m => m.SentAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<UserInChat>().HasKey("ChatId", "Username");
             modelBuilder.Entity<TeacherSubject>().HasKey("SubjectName", "Username");
-            modelBuilder.Entity<Feedback>().HasKey("AuthorUsername", "ReviewerUsername");
+            modelBuilder.Entity<Feedback>().HasKey("AuthorUsername", "RevieweeUsername");
         }
     }
 }
