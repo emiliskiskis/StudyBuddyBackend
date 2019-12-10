@@ -40,6 +40,7 @@ namespace StudyBuddyBackend.Database.Entities
         public string Email { get; set; }
 
         [Column(TypeName = "BOOLEAN")]
+        [ReadOnly(true)]
         public bool IsTeacher { get; set; }
 
         // Initializing lists because empty sets in database create null values

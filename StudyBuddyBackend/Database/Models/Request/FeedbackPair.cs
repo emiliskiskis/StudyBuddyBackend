@@ -9,6 +9,12 @@ namespace StudyBuddyBackend.Database.Models.Request
 {
     public class FeedbackPair
     {
+        public FeedbackPair(string author, string reviewee)
+        {
+            Author = author;
+            Reviewee = reviewee;
+        }
+
         [Required] public string Author { get; set; }
         [Required] public string Reviewee { get; set; }
     }

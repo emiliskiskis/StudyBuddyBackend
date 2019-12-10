@@ -47,7 +47,7 @@ namespace StudyBuddyBackend.Database.Controllers
         }
 
         [HttpDelete]
-        public ActionResult<IEnumerable<Models.Response.Feedback>> DeleteFeedback([FromBody] FeedbackPair pair)
+        public ActionResult<Models.Response.Feedback> DeleteFeedback([FromBody] FeedbackPair pair)
         {
             if (pair.Author != _identityService.GetUsername(HttpContext)) return Unauthorized();
 
@@ -60,7 +60,7 @@ namespace StudyBuddyBackend.Database.Controllers
 
             _databaseContext.Feedback.Remove(feedback);
             _databaseContext.SaveChanges();
-            return Ok();
+            return new Models.Response.Feedback(feedback);
         }
     }
 }
