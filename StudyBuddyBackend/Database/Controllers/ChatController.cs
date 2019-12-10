@@ -80,23 +80,23 @@ namespace StudyBuddyBackend.Database.Controllers
             var chat = _databaseContext.Chats.Include(c => c.Users).FirstOrDefault(c => c.Id == chatId);
             if (chat == default)
             {
-                return NotFound(new {ChatId = "Chat not found."});
+                return NotFound(new { ChatId = "Chat not found." });
             }
 
             var user = _databaseContext.Users.Find(userUsername.Username);
             if (user == null)
             {
-                return NotFound(new {Username = "User not found."});
+                return NotFound(new { Username = "User not found." });
             }
 
             if (_databaseContext.UsersInChats.Find(chatId, userUsername.Username) != null)
             {
-                return Conflict(new {Username = "User already exists in chat."});
+                return Conflict(new { Username = "User already exists in chat." });
             }
 
             var nameClaim = _identityService.GetUsername(HttpContext);
 
-            if (chat.Users.FirstOrDefault(u => u.User.Username == nameClaim) == default)
+            if (chat.Users.FirstOrDefault(u => u.Username == nameClaim) == default)
             {
                 return Unauthorized();
             }
