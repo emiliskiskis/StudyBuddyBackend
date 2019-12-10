@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudyBuddyBackend.Database.Entities;
+using StudyBuddyBackend.Database.Models.Response;
 using StudyBuddyBackend.Identity;
 
 namespace StudyBuddyBackend.Database.Controllers
@@ -76,6 +78,15 @@ namespace StudyBuddyBackend.Database.Controllers
             _databaseContext.TeacherSubjects.Add(new TeacherSubject(teacher, subject));
             _databaseContext.SaveChanges();
             return Ok();
+        }
+
+        [HttpGet("{subject}")]
+        public ActionResult<IEnumerable<object>> GetAllTeachers(string subject)
+        {
+            return _databaseContext.TeacherInfo.Include(ti => ti.User)
+                                               .Where(ti => ti.TeacherSubjects.Any(ts => ts.SubjectName == subject))
+                                               .Select(teacher => new PublicUser(teacher.User))
+                                               .ToList();
         }
     }
 }
