@@ -19,6 +19,7 @@ namespace StudyBuddyBackend.Database.Controllers
         public FeedbackController(IDatabaseContext databaseContext, IIdentityService identityService)
         {
             _databaseContext = databaseContext;
+            _identityService = identityService;
         }
 
         [HttpPost]
@@ -41,12 +42,15 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpGet("{username}")]
         public ActionResult<IEnumerable<Models.Response.Feedback>> GetFeedback(string username)
         {
+            if (username != _identityService.GetUsername(HttpContext)) return Unauthorized();
             return _databaseContext.Feedback.Include(f => f.Author).Where(f => f.RevieweeUsername == username).Select(f => new Models.Response.Feedback(f)).ToList();
         }
 
         [HttpDelete]
         public ActionResult<IEnumerable<Models.Response.Feedback>> DeleteFeedback([FromBody] FeedbackPair pair)
         {
+            if (pair.Author != _identityService.GetUsername(HttpContext)) return Unauthorized();
+
             var feedback = _databaseContext.Feedback.Find(pair.Author, pair.Reviewee);
 
             if (feedback == null)

@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudyBuddyBackend.Database.Entities;
+using StudyBuddyBackend.Identity;
 
 namespace StudyBuddyBackend.Database.Controllers
 {
@@ -12,19 +13,32 @@ namespace StudyBuddyBackend.Database.Controllers
     public class TeacherController : ControllerBase
     {
         private readonly IDatabaseContext _databaseContext;
+        private readonly IIdentityService _identityService;
 
-        public TeacherController(IDatabaseContext databaseContext)
+        public TeacherController(IDatabaseContext databaseContext, IIdentityService identityService)
         {
             _databaseContext = databaseContext;
+            _identityService = identityService;
         }
 
         [HttpPost("{username}")]
         public ActionResult MakeTeacher(string username)
         {
+            if (username != _identityService.GetUsername(HttpContext)) return Unauthorized();
+
             if (TeacherExists(username)) return Conflict();
 
             // Add the teacher and return the created teacher
             _databaseContext.TeacherInfo.Add(new TeacherInfo(username));
+            User user = _databaseContext.Users.Find(username);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.IsTeacher = true;
+            _databaseContext.Users.Update(user);
             _databaseContext.SaveChanges();
             return Ok();
         }
@@ -50,6 +64,8 @@ namespace StudyBuddyBackend.Database.Controllers
         [HttpPost("{username}/subjects")]
         public IActionResult AddSubjectToTeacher(Subject subject, string username)
         {
+            if (username != _identityService.GetUsername(HttpContext)) return Unauthorized();
+
             TeacherInfo teacher = _databaseContext.TeacherInfo.Find(username);
 
             if (teacher == null)
